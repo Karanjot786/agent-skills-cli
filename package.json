@@ -27,11 +27,11 @@
     "skills",
     "marketplace"
   ],
-  "author": "ksd",
+  "author": "Karanjot786",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ksd/agent-skills-cli"
+    "url": "https://github.com/Karanjot786/agent-skills-cli"
   },
   "homepage": "https://agentskills.io",
   "engines": {
