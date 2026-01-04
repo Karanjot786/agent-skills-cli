@@ -1,0 +1,27 @@
+.npmignore is for excluding files from npm package
+
+# Source files (we ship dist/)
+src/
+
+# Config files
+tsconfig.json
+.gitignore
+.github/
+
+# Documentation (README is kept)
+CONTRIBUTING.md
+SECURITY.md
+CHANGELOG.md
+
+# Test files
+*.test.ts
+*.spec.ts
+coverage/
+
+# Dev files
+.vscode/
+.idea/
+
+# Local test data
+skills/test-skill/
+.antigravity/

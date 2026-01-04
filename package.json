@@ -1,0 +1,59 @@
+{
+  "name": "agent-skills-cli",
+  "version": "1.0.0",
+  "description": "Universal CLI for Agent Skills - works with Cursor, Claude Code, GitHub Copilot, OpenAI Codex",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "skills": "./dist/cli/index.js",
+    "agent-skills": "./dist/cli/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/cli/index.js",
+    "test": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "agent-skills",
+    "ai",
+    "llm",
+    "cursor",
+    "claude-code",
+    "github-copilot",
+    "openai-codex",
+    "skills",
+    "marketplace"
+  ],
+  "author": "ksd",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ksd/agent-skills-cli"
+  },
+  "homepage": "https://agentskills.io",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "glob": "^10.4.5",
+    "gray-matter": "^4.0.3",
+    "inquirer": "^13.1.0",
+    "ora": "^9.0.0",
+    "yaml": "^2.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.0"
+  }
+}
