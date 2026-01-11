@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.4] - 2026-01-11
+
+### ⚡ Parallel Downloads
+- Multiple skills now download in parallel for faster installation
+- Significantly faster when installing 4+ skills at once
+
+### 🔧 Interactive Install Fixes
+- Fixed interactive wizard to install directly to platform directories
+- Now copies ALL skill files (including subdirectories, references, etc.)
+- Output now matches `skills install` command format
+- Fixed database field name mismatch (githubUrl vs github_url)
+
+---
+
 ## [1.0.3] - 2026-01-11
 
 ### 🌐 Website Launch
