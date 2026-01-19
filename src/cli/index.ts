@@ -959,6 +959,198 @@ program
         }
     });
 
+// ============================================
+// SEARCH COMMAND - Main user-facing search
+// ============================================
+
+program
+    .command('search <query...>')
+    .alias('s')
+    .description('Search and install skills from marketplace (67K+ skills)')
+    .option('-l, --limit <n>', 'Maximum results to show', '20')
+    .option('-s, --sort <by>', 'Sort by: stars, recent, name', 'stars')
+    .option('--json', 'Output as JSON for scripting (no interactive prompt)')
+    .action(async (queryParts, options) => {
+        try {
+            const query = queryParts.join(' ');
+            const limit = parseInt(options.limit) || 20;
+
+            if (!options.json) {
+                console.log(chalk.bold(`\n🔍 Searching for "${query}"...\n`));
+            }
+
+            // Fetch results from database
+            let result: { skills: any[]; total: number };
+            try {
+                result = await fetchSkillsForCLI({
+                    search: query,
+                    limit,
+                    sortBy: options.sort as 'stars' | 'recent' | 'name'
+                });
+            } catch {
+                // Fallback to GitHub sources
+                if (!options.json) {
+                    console.log(chalk.gray('Falling back to GitHub sources...'));
+                }
+                const skills = await searchSkills(query);
+                result = { skills: skills.slice(0, limit), total: skills.length };
+            }
+
+            if (result.skills.length === 0) {
+                if (options.json) {
+                    console.log(JSON.stringify({ skills: [], total: 0, query }));
+                } else {
+                    console.log(chalk.yellow(`No skills found matching "${query}"`));
+                }
+                return;
+            }
+
+            // JSON output (non-interactive)
+            if (options.json) {
+                console.log(JSON.stringify({
+                    skills: result.skills.map(s => ({
+                        name: s.name,
+                        author: s.author,
+                        scopedName: s.scopedName || `${s.author}/${s.name}`,
+                        description: s.description,
+                        stars: s.stars || 0,
+                        githubUrl: s.githubUrl
+                    })),
+                    total: result.total,
+                    query
+                }, null, 2));
+                return;
+            }
+
+            // Display results summary
+            console.log(chalk.gray(`Found ${result.total.toLocaleString()} skills. Select to install:\n`));
+
+            // Interactive install - always show selection prompt
+            const choices = result.skills.map((skill: any) => ({
+                name: `${skill.name} ${skill.stars ? chalk.yellow(`⭐${skill.stars.toLocaleString()}`) : ''} ${chalk.dim(`@${skill.author || 'unknown'}`)}`,
+                value: {
+                    name: skill.name,
+                    scopedName: skill.scopedName || `${skill.author}/${skill.name}`,
+                    githubUrl: skill.githubUrl || ''
+                },
+                short: skill.name
+            }));
+
+            const { selectedSkills } = await inquirer.prompt([
+                {
+                    type: 'checkbox',
+                    name: 'selectedSkills',
+                    message: 'Select skills (Space to select, Enter to confirm):',
+                    choices,
+                    pageSize: 15,
+                    loop: false
+                }
+            ]);
+
+            if (selectedSkills.length === 0) {
+                console.log(chalk.yellow('\nNo skills selected.\n'));
+                return;
+            }
+
+            // Select platforms
+            const agentChoices = Object.entries(AGENTS).map(([key, config]) => ({
+                name: config.displayName,
+                value: key,
+                checked: ['cursor', 'claude', 'copilot', 'antigravity'].includes(key)
+            }));
+
+            const { platforms } = await inquirer.prompt([
+                {
+                    type: 'checkbox',
+                    name: 'platforms',
+                    message: 'Install to which platforms?',
+                    choices: agentChoices,
+                    pageSize: 10
+                }
+            ]);
+
+            if (platforms.length === 0) {
+                console.log(chalk.yellow('\nNo platforms selected.\n'));
+                return;
+            }
+
+            // Install skills
+            const { mkdir, cp, rm } = await import('fs/promises');
+            const { join } = await import('path');
+            const { tmpdir } = await import('os');
+            const { exec } = await import('child_process');
+            const { promisify } = await import('util');
+            const execAsync = promisify(exec);
+
+            console.log(chalk.bold(`\n📦 Installing ${selectedSkills.length} skill(s)...\n`));
+
+            for (const skill of selectedSkills) {
+                const installSpinner = ora(`Installing ${skill.name}...`).start();
+
+                try {
+                    // Fetch skill details
+                    const { getSkillByScoped } = await import('../core/skillsdb.js');
+                    const dbSkill = await getSkillByScoped(skill.scopedName);
+
+                    if (!dbSkill) {
+                        installSpinner.fail(`${skill.name}: Not found`);
+                        continue;
+                    }
+
+                    const githubUrl = (dbSkill as any).github_url || (dbSkill as any).githubUrl;
+                    if (!githubUrl) {
+                        installSpinner.fail(`${skill.name}: No GitHub URL`);
+                        continue;
+                    }
+
+                    // Parse GitHub URL
+                    const urlMatch = githubUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+                    if (!urlMatch) {
+                        installSpinner.fail(`${skill.name}: Invalid GitHub URL`);
+                        continue;
+                    }
+
+                    const [, owner, repo] = urlMatch;
+                    const branch = (dbSkill as any).branch || 'main';
+                    const skillPath = ((dbSkill as any).path || '').replace(/\/SKILL\.md$/i, '');
+
+                    // Clone to temp
+                    const tempDir = join(tmpdir(), `skill-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+                    await mkdir(tempDir, { recursive: true });
+
+                    try {
+                        await execAsync(`git clone --depth 1 --branch ${branch} https://github.com/${owner}/${repo}.git .`, { cwd: tempDir });
+
+                        // Copy to each platform
+                        for (const platform of platforms) {
+                            const agentConfig = AGENTS[platform];
+                            if (!agentConfig) continue;
+
+                            const targetDir = agentConfig.projectDir;
+                            const skillDir = join(process.cwd(), targetDir, dbSkill.name);
+                            await mkdir(skillDir, { recursive: true });
+
+                            const sourceDir = skillPath ? join(tempDir, skillPath) : tempDir;
+                            await cp(sourceDir, skillDir, { recursive: true });
+                        }
+
+                        installSpinner.succeed(`${skill.name} → ${platforms.join(', ')}`);
+                    } finally {
+                        await rm(tempDir, { recursive: true, force: true }).catch(() => { });
+                    }
+                } catch (err: any) {
+                    installSpinner.fail(`${skill.name}: ${err.message || err}`);
+                }
+            }
+
+            console.log(chalk.bold.green(`\n✨ Installation complete!\n`));
+        } catch (error) {
+            console.error(chalk.red('Error searching:'), error);
+            process.exit(1);
+        }
+    });
+
+
 // Install - Install a skill by scoped name (e.g., @author/skill or author/skill)
 program
     .command('install <scoped-name> [platforms...]')

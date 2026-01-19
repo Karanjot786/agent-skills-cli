@@ -1,6 +1,6 @@
 # Agent Skills CLI 🚀
 
-> **One CLI. 50,000+ skills. All AI agents.**
+> **One CLI. 67,000+ skills. All AI agents.**
 
 [![npm version](https://img.shields.io/npm/v/agent-skills-cli)](https://www.npmjs.com/package/agent-skills-cli)
 [![license](https://img.shields.io/npm/l/agent-skills-cli)](LICENSE)
@@ -18,7 +18,8 @@ skills install @anthropic/xlsx
 
 ## ✨ Features
 
-- **50,000+ Skills** — Access the largest collection of AI agent skills
+- **67,000+ Skills** — Access the largest collection of AI agent skills
+- **Interactive Search** — Search and install in one command: `skills search python`
 - **10 AI Agents** — Cursor, Claude, Copilot, Codex, Antigravity, OpenCode, Amp, Kilo, Roo, Goose
 - **Global Install** — Install globally with `-g` or to project with default
 - **Git URL Support** — Install from any Git repo with `skills add owner/repo`
@@ -59,8 +60,11 @@ skills add vercel-labs/agent-skills
 # List skills in a repo
 skills add owner/repo --list
 
-# Search the marketplace
-skills search "machine learning"
+# Search and install skills interactively
+skills search python
+
+# Search with JSON output (non-interactive)
+skills search react --json
 ```
 
 ---
@@ -74,7 +78,7 @@ skills search "machine learning"
 | `skills install <name>` | Install a skill from marketplace |
 | `skills add <source>` | Install from Git repo (owner/repo or URL) |
 | `skills list` | List installed skills |
-| `skills search <query>` | Search the marketplace |
+| `skills search <query>` | Search and install (with `-i`) |
 | `skills show <name>` | Show skill details |
 | `skills doctor` | Diagnose issues |
 

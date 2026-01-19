@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.6] - 2026-01-19
+
+### 🔍 Interactive Search (`skills search`)
+- New `skills search <query>` command to search 67K+ skills
+- **Interactive by default** - search, select, and install in one command
+- JSON output with `--json` flag for scripting (non-interactive)
+- Sort by stars, recent, or name with `--sort`
+- Limit results with `--limit`
+
+---
+
 ## [1.0.5] - 2026-01-16
 
 ### 🌐 Global Install (`-g/--global`)
