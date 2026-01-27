@@ -2,6 +2,48 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.7] - 2026-01-27
+
+### 🤖 19 New Agents (29 Total)
+- **Cline** (`.cline/skills`)
+- **Windsurf** (`.windsurf/skills`)
+- **Gemini CLI** (`.gemini/skills`)
+- **CodeBuddy** (`.codebuddy/skills`)
+- **Command Code** (`.commandcode/skills`)
+- **Continue** (`.continue/skills`)
+- **Crush** (`.crush/skills`)
+- **Clawdbot** (`skills`)
+- **Droid** (`.factory/skills`)
+- **Kiro CLI** (`.kiro/skills`)
+- **MCPJam** (`.mcpjam/skills`)
+- **Mux** (`.mux/skills`)
+- **OpenHands** (`.openhands/skills`)
+- **Pi** (`.pi/skills`)
+- **Qoder** (`.qoder/skills`)
+- **Qwen Code** (`.qwen/skills`)
+- **Trae** (`.trae/skills`)
+- **Zencoder** (`.zencoder/skills`)
+- **Neovate** (`.neovate/skills`)
+
+### 📊 Telemetry System
+- Anonymous usage tracking with opt-out support
+- Set `DISABLE_TELEMETRY=1` or `DO_NOT_TRACK=1` to opt out
+- Automatically disabled in CI environments
+- Tracks: search, install events (no personal data)
+
+### 🔍 New `skills check` Command
+- Check installed skills across all 29 agents
+- Filter by agent: `skills check --agent cursor`
+- JSON output: `skills check --json`
+- Global skills: `skills check --global`
+
+### 🔧 Source Parser
+- New source parsing module for flexible installation
+- Supports GitHub, GitLab, local paths, direct URLs
+- Better error handling for malformed sources
+
+---
+
 ## [1.0.6] - 2026-01-19
 
 ### 🔍 Interactive Search (`skills search`)

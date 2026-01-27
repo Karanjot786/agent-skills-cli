@@ -33,7 +33,12 @@ import {
     getAssetUrl,
     fetchAsset,
     getAssetUrlFromEntry,
-    fetchSkillsForCLI
+    fetchSkillsForCLI,
+    // Telemetry
+    setVersion,
+    trackInstall,
+    trackSearch,
+    trackCommand
 } from '../core/index.js';
 import { homedir } from 'os';
 
@@ -108,6 +113,121 @@ const AGENTS: Record<string, AgentConfig> = {
         projectDir: '.goose/skills',
         globalDir: `${home}/.config/goose/skills`,
     },
+    // New agents from vercel-labs/skills (19 additional)
+    'cline': {
+        name: 'cline',
+        displayName: 'Cline',
+        projectDir: '.cline/skills',
+        globalDir: `${home}/.cline/skills`,
+    },
+    'codebuddy': {
+        name: 'codebuddy',
+        displayName: 'CodeBuddy',
+        projectDir: '.codebuddy/skills',
+        globalDir: `${home}/.codebuddy/skills`,
+    },
+    'command-code': {
+        name: 'command-code',
+        displayName: 'Command Code',
+        projectDir: '.commandcode/skills',
+        globalDir: `${home}/.commandcode/skills`,
+    },
+    'continue': {
+        name: 'continue',
+        displayName: 'Continue',
+        projectDir: '.continue/skills',
+        globalDir: `${home}/.continue/skills`,
+    },
+    'crush': {
+        name: 'crush',
+        displayName: 'Crush',
+        projectDir: '.crush/skills',
+        globalDir: `${home}/.config/crush/skills`,
+    },
+    'clawdbot': {
+        name: 'clawdbot',
+        displayName: 'Clawdbot',
+        projectDir: 'skills',
+        globalDir: `${home}/.clawdbot/skills`,
+    },
+    'droid': {
+        name: 'droid',
+        displayName: 'Droid',
+        projectDir: '.factory/skills',
+        globalDir: `${home}/.factory/skills`,
+    },
+    'gemini-cli': {
+        name: 'gemini-cli',
+        displayName: 'Gemini CLI',
+        projectDir: '.gemini/skills',
+        globalDir: `${home}/.gemini/skills`,
+    },
+    'kiro-cli': {
+        name: 'kiro-cli',
+        displayName: 'Kiro CLI',
+        projectDir: '.kiro/skills',
+        globalDir: `${home}/.kiro/skills`,
+    },
+    'mcpjam': {
+        name: 'mcpjam',
+        displayName: 'MCPJam',
+        projectDir: '.mcpjam/skills',
+        globalDir: `${home}/.mcpjam/skills`,
+    },
+    'mux': {
+        name: 'mux',
+        displayName: 'Mux',
+        projectDir: '.mux/skills',
+        globalDir: `${home}/.mux/skills`,
+    },
+    'openhands': {
+        name: 'openhands',
+        displayName: 'OpenHands',
+        projectDir: '.openhands/skills',
+        globalDir: `${home}/.openhands/skills`,
+    },
+    'pi': {
+        name: 'pi',
+        displayName: 'Pi',
+        projectDir: '.pi/skills',
+        globalDir: `${home}/.pi/agent/skills`,
+    },
+    'qoder': {
+        name: 'qoder',
+        displayName: 'Qoder',
+        projectDir: '.qoder/skills',
+        globalDir: `${home}/.qoder/skills`,
+    },
+    'qwen-code': {
+        name: 'qwen-code',
+        displayName: 'Qwen Code',
+        projectDir: '.qwen/skills',
+        globalDir: `${home}/.qwen/skills`,
+    },
+    'trae': {
+        name: 'trae',
+        displayName: 'Trae',
+        projectDir: '.trae/skills',
+        globalDir: `${home}/.trae/skills`,
+    },
+    'windsurf': {
+        name: 'windsurf',
+        displayName: 'Windsurf',
+        projectDir: '.windsurf/skills',
+        globalDir: `${home}/.codeium/windsurf/skills`,
+    },
+    'zencoder': {
+        name: 'zencoder',
+        displayName: 'Zencoder',
+        projectDir: '.zencoder/skills',
+        globalDir: `${home}/.zencoder/skills`,
+    },
+    'neovate': {
+        name: 'neovate',
+        displayName: 'Neovate',
+        projectDir: '.neovate/skills',
+        globalDir: `${home}/.neovate/skills`,
+    },
 };
 
 // Helper to get install path
@@ -118,6 +238,9 @@ function getInstallPath(agent: string, global: boolean): string {
 }
 
 const program = new Command();
+
+// Initialize telemetry with CLI version
+setVersion('1.0.23');
 
 // Main flow when running `skills` - go straight to install
 async function showMainMenu() {
@@ -995,6 +1118,9 @@ program
                 const skills = await searchSkills(query);
                 result = { skills: skills.slice(0, limit), total: skills.length };
             }
+
+            // Track search telemetry
+            trackSearch(query, result.total);
 
             if (result.skills.length === 0) {
                 if (options.json) {
@@ -2834,6 +2960,90 @@ program
             console.log('');
         } catch (error) {
             console.error(chalk.red('Error running doctor:'), error);
+            process.exit(1);
+        }
+    });
+
+// ============================================
+// CHECK COMMAND - Check for skill updates
+// ============================================
+
+program
+    .command('check')
+    .description('Check for available skill updates')
+    .option('-a, --agent <agent>', 'Check specific agent only')
+    .option('-g, --global', 'Check globally installed skills')
+    .option('--json', 'Output as JSON')
+    .action(async (options) => {
+        try {
+            const spinner = ora('Checking for updates...').start();
+
+            // Get list of agents to check
+            const agentsToCheck = options.agent
+                ? [options.agent]
+                : Object.keys(AGENTS);
+
+            const updates: Array<{
+                skill: string;
+                agent: string;
+                currentVersion: string;
+                latestVersion: string;
+                path: string;
+            }> = [];
+
+            for (const agentName of agentsToCheck) {
+                const config = AGENTS[agentName];
+                if (!config) continue;
+
+                const skillsDir = options.global ? config.globalDir : config.projectDir;
+
+                try {
+                    const { existsSync, readdirSync } = await import('fs');
+                    if (!existsSync(skillsDir)) continue;
+
+                    const skills = readdirSync(skillsDir, { withFileTypes: true })
+                        .filter(d => d.isDirectory())
+                        .map(d => d.name);
+
+                    for (const skill of skills) {
+                        // Check if skill has updates available
+                        // For now, just list installed skills
+                        updates.push({
+                            skill,
+                            agent: config.displayName,
+                            currentVersion: 'installed',
+                            latestVersion: 'check online',
+                            path: `${skillsDir}/${skill}`,
+                        });
+                    }
+                } catch {
+                    // Skip if can't read directory
+                }
+            }
+
+            spinner.stop();
+
+            if (options.json) {
+                console.log(JSON.stringify({ updates, count: updates.length }, null, 2));
+                return;
+            }
+
+            if (updates.length === 0) {
+                console.log(chalk.green('✓ No skills installed to check.'));
+                return;
+            }
+
+            console.log(chalk.bold(`\n📦 Found ${updates.length} installed skill(s):\n`));
+
+            for (const update of updates) {
+                console.log(`  ${chalk.cyan(update.skill)} ${chalk.gray(`(${update.agent})`)}`);
+                console.log(chalk.gray(`    ${update.path}`));
+            }
+
+            console.log(chalk.gray('\nTip: Run `skills update` to update all skills.\n'));
+
+        } catch (error) {
+            console.error(chalk.red('Error checking for updates:'), error);
             process.exit(1);
         }
     });

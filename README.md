@@ -1,11 +1,11 @@
 # Agent Skills CLI 🚀
 
-> **One CLI. 67,000+ skills. All AI agents.**
+> **One CLI. 100,000+ skills. 29 AI agents.**
 
 [![npm version](https://img.shields.io/npm/v/agent-skills-cli)](https://www.npmjs.com/package/agent-skills-cli)
 [![license](https://img.shields.io/npm/l/agent-skills-cli)](LICENSE)
 
-Install skills from the world's largest marketplace and sync them to **Cursor**, **Claude Code**, **GitHub Copilot**, **OpenAI Codex**, **Antigravity**, **OpenCode**, **Amp**, **Kilo Code**, **Roo Code**, and **Goose** — all with a single command.
+Install skills from the world's largest marketplace and sync them to **29 AI agents** including Cursor, Claude Code, GitHub Copilot, Windsurf, Cline, Gemini CLI, and more — all with a single command.
 
 🌐 **Website:** [agentskills.in](https://agentskills.in)
 
@@ -18,14 +18,14 @@ skills install @anthropic/xlsx
 
 ## ✨ Features
 
-- **67,000+ Skills** — Access the largest collection of AI agent skills
+- **100,000+ Skills** — Access the largest collection of AI agent skills
 - **Interactive Search** — Search and install in one command: `skills search python`
-- **10 AI Agents** — Cursor, Claude, Copilot, Codex, Antigravity, OpenCode, Amp, Kilo, Roo, Goose
+- **29 AI Agents** — Cursor, Claude, Copilot, Windsurf, Cline, Gemini CLI, and 23 more
 - **Global Install** — Install globally with `-g` or to project with default
-- **Git URL Support** — Install from any Git repo with `skills add owner/repo`
+- **Git URL Support** — Install from GitHub, GitLab, or local paths
 - **Platform Targeting** — Install to specific platforms with `-t claude,cursor`
-- **Auto-Detection** — Automatically detects installed AI agents
-- **Modern UI** — Beautiful prompts with @clack/prompts
+- **Update Tracking** — Check installed skills with `skills check`
+- **Privacy-First Telemetry** — Anonymous usage tracking with opt-out
 
 ---
 
@@ -77,9 +77,9 @@ skills search react --json
 |---------|-------------|
 | `skills install <name>` | Install a skill from marketplace |
 | `skills add <source>` | Install from Git repo (owner/repo or URL) |
-| `skills list` | List installed skills |
-| `skills search <query>` | Search and install (with `-i`) |
-| `skills show <name>` | Show skill details |
+| `skills search <query>` | Search and install skills interactively |
+| `skills check` | Check installed skills across all agents |
+| `skills update` | Update installed skills to latest versions |
 | `skills doctor` | Diagnose issues |
 
 ### Install Options
@@ -116,20 +116,37 @@ skills info               # Show installation status
 
 ---
 
-## 🤖 Supported Platforms (10 Agents)
+## 🤖 Supported Platforms (29 Agents)
 
-| Platform | Project Dir | Global Dir | Flag |
-|----------|-------------|------------|------|
-| **Cursor** | `.cursor/skills/` | `~/.cursor/skills/` | `-t cursor` |
-| **Claude Code** | `.claude/skills/` | `~/.claude/skills/` | `-t claude` |
-| **GitHub Copilot** | `.github/skills/` | `~/.github/skills/` | `-t copilot` |
-| **OpenAI Codex** | `.codex/skills/` | `~/.codex/skills/` | `-t codex` |
-| **Antigravity** | `.agent/skills/` | `~/.gemini/antigravity/skills/` | `-t antigravity` |
-| **OpenCode** | `.opencode/skill/` | `~/.config/opencode/skill/` | `-t opencode` |
-| **Amp** | `.agents/skills/` | `~/.config/agents/skills/` | `-t amp` |
-| **Kilo Code** | `.kilocode/skills/` | `~/.kilocode/skills/` | `-t kilo` |
-| **Roo Code** | `.roo/skills/` | `~/.roo/skills/` | `-t roo` |
-| **Goose** | `.goose/skills/` | `~/.config/goose/skills/` | `-t goose` |
+| Platform | Project Dir | Global Dir |
+|----------|-------------|------------|
+| **Cursor** | `.cursor/skills/` | `~/.cursor/skills/` |
+| **Claude Code** | `.claude/skills/` | `~/.claude/skills/` |
+| **GitHub Copilot** | `.github/skills/` | `~/.github/skills/` |
+| **OpenAI Codex** | `.codex/skills/` | `~/.codex/skills/` |
+| **Windsurf** | `.windsurf/skills/` | `~/.codeium/windsurf/skills/` |
+| **Cline** | `.cline/skills/` | `~/.cline/skills/` |
+| **Gemini CLI** | `.gemini/skills/` | `~/.gemini/skills/` |
+| **Antigravity** | `.agent/skills/` | `~/.gemini/antigravity/skills/` |
+| **OpenCode** | `.opencode/skill/` | `~/.config/opencode/skill/` |
+| **Amp** | `.agents/skills/` | `~/.config/agents/skills/` |
+
+**+19 more agents:** Kilo, Roo, Goose, CodeBuddy, Continue, Crush, Clawdbot, Droid, Kiro, MCPJam, Mux, OpenHands, Pi, Qoder, Qwen Code, Trae, Zencoder, Neovate, Command Code
+
+---
+
+## 🔒 Privacy & Telemetry
+
+The CLI collects anonymous usage data to improve the product. **No personal data is collected.**
+
+```bash
+# Opt out of telemetry
+export DISABLE_TELEMETRY=1
+# or
+export DO_NOT_TRACK=1
+```
+
+Telemetry is automatically disabled in CI environments.
 
 ---
 

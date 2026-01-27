@@ -103,3 +103,21 @@ export type {
     AssetEntry,
     AssetFile
 } from './assets.js';
+
+// Telemetry (anonymous usage tracking with opt-out)
+export {
+    track,
+    trackInstall,
+    trackSearch,
+    trackCommand,
+    setVersion
+} from './telemetry.js';
+
+// Source parser (GitHub, GitLab, local paths, direct URLs)
+export {
+    parseSource,
+    getOwnerRepo,
+    getSourceTypeDisplay
+} from './source-parser.js';
+
+export type { ParsedSource } from './source-parser.js';
