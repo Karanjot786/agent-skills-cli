@@ -3,7 +3,10 @@
 > **One CLI. 175,000+ skills. 45 AI agents.**
 
 [![npm version](https://img.shields.io/npm/v/agent-skills-cli)](https://www.npmjs.com/package/agent-skills-cli)
+[![npm downloads](https://img.shields.io/npm/dm/agent-skills-cli)](https://www.npmjs.com/package/agent-skills-cli)
 [![license](https://img.shields.io/npm/l/agent-skills-cli)](LICENSE)
+[![Website](https://img.shields.io/badge/website-agentskills.in-blue?style=flat)](https://agentskills.in)
+[![GitHub Stars](https://img.shields.io/github/stars/Karanjot786/agent-skills-cli?style=social)](https://github.com/Karanjot786/agent-skills-cli)
 
 Install skills from the world's largest marketplace and sync them to **45 AI agents** including Cursor, Claude Code, GitHub Copilot, Windsurf, Cline, Gemini CLI, Zed, and more — all with a single command.
 
@@ -102,6 +105,8 @@ skills search python -a claude -y
 # Search + install to specific agents
 skills search react -a cursor claude
 ```
+
+> **🌐 Browse 175,000+ skills at [agentskills.in/marketplace](https://agentskills.in/marketplace)**
 
 ---
 
