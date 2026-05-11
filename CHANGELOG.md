@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.8] - 2026-05-11
+
+### 🐛 Bug Fixes
+
+#### Install copies full skill directory (fixes #10)
+- `skills install` now downloads all files in a skill directory (assets/, scripts/, references/, etc.), not just `SKILL.md`
+- Uses GitHub Trees API to enumerate every file in the skill folder before downloading
+
+#### Update supports private-git sources (fixes #6)
+- `skills update` no longer skips skills installed from private SSH or custom Git URLs
+- `private-git` source type is now included in the updateable filter
+- SSH URLs are passed directly to `git clone` without regex validation
+
+#### Exact name lookup for install (fixes #7)
+- `skills install @author/skill-name` now resolves correctly even when the author has thousands of skills
+- CLI tries an exact `?name=` API query first before falling back to fuzzy search
+- New `/api/skills?name=<exact>` endpoint on agentskills.in for precise name matching
+
+### 🌐 Marketplace Fixes
+
+#### Root-level SKILL.md indexed correctly (fixes #11)
+- Skills with `SKILL.md` at the repository root (not inside a subdirectory) were indexed as `@author/unknown`
+- Now falls back to the repository name, which is then overridden by the `name:` frontmatter field
+- Affected repos have been re-indexed automatically
+
 ## [1.1.7] - 2026-02-27
 
 ### 🔎 Glob/Wildcard `--skill` Matching

@@ -10,7 +10,7 @@
 
 Install skills from the world's largest marketplace and sync them to **45 AI agents** including Cursor, Claude Code, GitHub Copilot, Windsurf, Cline, Gemini CLI, Zed, and more — all with a single command.
 
-**What's new in v1.1.7:** Glob matching (`--skill 'core-*'`), prune stale skills (`--prune`), branch targeting (`owner/repo#dev`), and 3 new agents (Lingma, Deep Agents, Ruler)
+**What's new in v1.1.8:** Install now copies full skill directories (assets, scripts, etc.), `update` supports private SSH repos, and exact name lookup fixes installs for common-word skill names
 
 🌐 **Website:** [agentskills.in](https://agentskills.in)
 
