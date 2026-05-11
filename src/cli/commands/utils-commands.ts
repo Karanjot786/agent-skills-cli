@@ -337,9 +337,9 @@ export function registerUpdateCommand(program: Command) {
                     return;
                 }
 
-                // Filter to only updateable skills (github/gitlab)
+                // Filter to only updateable skills (github/gitlab/private-git)
                 const updateable = skillsToUpdate.filter(s =>
-                    s.sourceType === 'github' || s.sourceType === 'gitlab' || s.sourceType === 'database'
+                    s.sourceType === 'github' || s.sourceType === 'gitlab' || s.sourceType === 'database' || s.sourceType === 'private-git'
                 );
 
                 if (updateable.length === 0) {
@@ -361,12 +361,14 @@ export function registerUpdateCommand(program: Command) {
                         const tempDir = join(tmpdir(), `skill-update-${Date.now()}`);
                         await mkdir(tempDir, { recursive: true });
 
-                        // Parse GitHub/GitLab URL
-                        const urlMatch = skill.source.match(/(github|gitlab)\.com\/([^/]+)\/([^/]+)/);
-                        if (!urlMatch) {
-                            spinner.fail(`${skill.scopedName}: Invalid source URL`);
-                            failCount++;
-                            continue;
+                        // For private-git, skip URL validation — use source directly
+                        if (skill.sourceType !== 'private-git') {
+                            const urlMatch = skill.source.match(/(github|gitlab)\.com\/([^/]+)\/([^/]+)/);
+                            if (!urlMatch) {
+                                spinner.fail(`${skill.scopedName}: Invalid source URL`);
+                                failCount++;
+                                continue;
+                            }
                         }
 
                         // Clone the repo

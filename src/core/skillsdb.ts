@@ -109,25 +109,36 @@ export async function fetchFromDB(options: FetchOptions = {}): Promise<SkillsDBR
 export async function getSkillByScoped(scopedName: string): Promise<DBSkill | null> {
     const { author, name } = parseScopedName(scopedName);
 
-    const result = await fetchFromDB({
-        search: name,
-        author,
-        limit: 50,
-        sortBy: 'stars'
-    });
+    // Try exact name lookup first (works even for authors with thousands of skills)
+    const params = new URLSearchParams();
+    params.set('name', name);
+    if (author) params.set('author', author);
+    params.set('limit', '10');
 
-    // Find exact match
+    try {
+        const res = await fetch(`${SKILLS_API}?${params}`, {
+            headers: { 'Accept': 'application/json', 'User-Agent': 'agent-skills-cli' }
+        });
+        if (res.ok) {
+            const result = await res.json() as SkillsDBResult;
+            const exactMatch = result.skills.find(s =>
+                s.name.toLowerCase() === name.toLowerCase() &&
+                (!author || s.author.toLowerCase() === author.toLowerCase())
+            );
+            if (exactMatch) return exactMatch;
+        }
+    } catch { /* fall through to fuzzy search */ }
+
+    // Fallback: fuzzy search
+    const result = await fetchFromDB({ search: name, author, limit: 50, sortBy: 'stars' });
+
     const exactMatch = result.skills.find(s =>
         s.name.toLowerCase() === name.toLowerCase() &&
         (!author || s.author.toLowerCase() === author.toLowerCase())
     );
 
     if (exactMatch) return exactMatch;
-
-    // If no exact match and author was specified, no result
     if (author) return null;
-
-    // If no author specified, return best match (highest stars)
     return result.skills[0] || null;
 }
 
@@ -295,7 +306,45 @@ export async function installFromGitHubUrl(
     const skillName = skillPath.split('/').pop() || 'skill';
     const destPath = `${installDir}/${skillName}`;
 
-    // Fetch SKILL.md content
+    const { mkdir, writeFile } = await import('fs/promises');
+    await mkdir(destPath, { recursive: true });
+
+    // Fetch all files in the skill directory via GitHub Trees API
+    const treeRes = await fetch(
+        `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`,
+        { headers: { 'Accept': 'application/vnd.github+json', 'User-Agent': 'agent-skills-cli' } }
+    );
+
+    if (treeRes.ok) {
+        const treeData = await treeRes.json() as { tree: Array<{ type: string; path: string }> };
+        const skillFiles = treeData.tree.filter(
+            f => f.type === 'blob' && f.path.startsWith(skillPath + '/')
+        );
+
+        for (const file of skillFiles) {
+            const relativePath = file.path.slice(skillPath.length + 1);
+            const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${file.path}`;
+            const fileRes = await fetch(rawUrl);
+            if (!fileRes.ok) continue;
+
+            const content = await fileRes.arrayBuffer();
+            const filePath = `${destPath}/${relativePath}`;
+
+            // Create subdirectory if needed
+            const fileDir = filePath.substring(0, filePath.lastIndexOf('/'));
+            if (fileDir !== destPath) {
+                await mkdir(fileDir, { recursive: true });
+            }
+
+            await writeFile(filePath, Buffer.from(content));
+        }
+
+        if (skillFiles.length > 0) {
+            return { name: skillName, path: destPath };
+        }
+    }
+
+    // Fallback: fetch only SKILL.md if tree API failed or returned no files
     const skillMdUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${skillPath}/SKILL.md`;
     const response = await fetch(skillMdUrl);
 
@@ -303,12 +352,7 @@ export async function installFromGitHubUrl(
         throw new Error(`Could not fetch SKILL.md from ${skillMdUrl}`);
     }
 
-    const skillContent = await response.text();
-
-    // Create directory and save SKILL.md
-    const { mkdir, writeFile } = await import('fs/promises');
-    await mkdir(destPath, { recursive: true });
-    await writeFile(`${destPath}/SKILL.md`, skillContent);
+    await writeFile(`${destPath}/SKILL.md`, await response.text());
 
     return { name: skillName, path: destPath };
 }
