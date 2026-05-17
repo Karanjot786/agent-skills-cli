@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.9] - 2026-05-17
+
+### 🐛 Bug Fixes
+
+#### Accept comma-separated agents on `-a` (fixes #13, PR #14 by [@10432mztn](https://github.com/10432mztn))
+- `skills install <repo> -a claude,cursor` no longer crashes with `Cannot read properties of undefined (reading 'projectDir')`
+- Both space-separated (`-a claude cursor`) and comma-separated (`-a claude,cursor`) forms work
+- Whitespace inside lists is trimmed (`-a claude, cursor` works too)
+
+#### Validate agent names before lookup
+- Unknown agent names now exit with a clear error listing the valid agent keys
+- Previously crashed silently on `AGENTS[agent].projectDir` with an undefined lookup
+
+Thanks to [@10432mztn](https://github.com/10432mztn) for reporting and fixing this.
+
 ## [1.1.8] - 2026-05-11
 
 ### 🐛 Bug Fixes

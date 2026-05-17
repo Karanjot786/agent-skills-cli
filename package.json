@@ -1,6 +1,6 @@
 {
   "name": "agent-skills-cli",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "description": "Universal CLI for Agent Skills - works with 45 AI agents including Cursor, Claude Code, GitHub Copilot, Windsurf, Cline, Zed, and more. Supports private Git repos, npm packages, and enterprise configurations.",
   "type": "module",
   "main": "dist/index.js",

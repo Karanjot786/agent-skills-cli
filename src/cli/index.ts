@@ -249,7 +249,7 @@ async function showMainMenu() {
 program
     .name('skills')
     .description('Agent Skills CLI - Manage skills for Cursor, Claude Code, GitHub Copilot, OpenAI Codex')
-    .version('1.0.0')
+    .version('1.1.9')
     .action(showMainMenu);
 
 // ─── Register all command modules ───────────────────────────────────────────
