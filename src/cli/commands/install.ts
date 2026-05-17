@@ -66,6 +66,24 @@ export function registerInstallCommand(program: Command) {
                 // Determine agents
                 let agents: string[] = options.agent || [];
 
+                // Normalize: accept both space-separated (`-a claude cursor`)
+                // and comma-separated (`-a claude,cursor`) forms.
+                agents = agents
+                    .flatMap((a: string) => a.split(','))
+                    .map((a: string) => a.trim())
+                    .filter((a: string) => a.length > 0);
+
+                // Validate agent names so an unknown agent surfaces a clear
+                // error instead of crashing later on `AGENTS[agent].projectDir`.
+                const unknownAgents = agents.filter((a: string) => !AGENTS[a]);
+                if (unknownAgents.length > 0) {
+                    const known = Object.keys(AGENTS).join(', ');
+                    console.error(chalk.red(`✖ Unknown agent(s): ${unknownAgents.join(', ')}`));
+                    console.error(chalk.gray(`  Valid agents: ${known}`));
+                    console.error(chalk.gray(`  Pass multiple agents space- or comma-separated (e.g. -a claude cursor  or  -a claude,cursor)`));
+                    process.exit(1);
+                }
+
                 // --all flag: install to all agents
                 if (options.all) {
                     agents = Object.keys(AGENTS);
