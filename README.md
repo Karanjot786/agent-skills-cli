@@ -248,6 +248,8 @@ skills submit-repo vercel-labs/agent-skills   # Skills appear on marketplace
 | **Gemini CLI** | `.gemini/skills/` | `~/.gemini/skills/` |
 | **Zed** | `.zed/skills/` | `~/.config/zed/skills/` |
 | **Antigravity** | `.agent/skills/` | `~/.gemini/antigravity/skills/` |
+
+> **Discovery note:** `skills list` searches both canonical install storage (`~/.skills/`, `./.skills/`) and agent-specific skill directories, so skills installed by `skills install` remain discoverable even before syncing.
 | **OpenCode** | `.opencode/skill/` | `~/.config/opencode/skill/` |
 
 **+32 more agents:** Amp, Kilo, Roo, Goose, CodeBuddy, Continue, Crush, Clawdbot, Droid, Kiro, MCPJam, Mux, OpenHands, Pi, Qoder, Qwen Code, Trae, Zencoder, Neovate, Command Code, Ara, Aide, Alex, BB, CodeStory, Helix AI, Meekia, Pear AI, Adal, Pochi, Sourcegraph Cody, Void AI
@@ -288,7 +290,7 @@ Config is loaded from: project `.skillsrc` → home `~/.skillsrc` (first found w
 ## 🔐 Environment Variables
 
 | Variable | Purpose |
-|----------|---------|  
+|----------|---------|
 | `GH_TOKEN` / `GITHUB_TOKEN` | GitHub private repo authentication |
 | `GITLAB_TOKEN` / `GL_TOKEN` | GitLab private repo authentication |
 | `BITBUCKET_TOKEN` / `BB_TOKEN` | Bitbucket private repo authentication |
