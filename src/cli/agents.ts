@@ -291,7 +291,12 @@ export const AGENTS: Record<string, AgentConfig> = {
 	},
 };
 
-/** Helper to get install path */
+/**
+ * Get the installation path for a given agent.
+ * @param agent - The agent name (e.g., 'cursor', 'claude').
+ * @param global - Whether to return the global or project-specific install path.
+ * @returns The directory path where skills should be installed for this agent.
+ */
 export function getInstallPath(agent: string, global: boolean): string {
 	const config = AGENTS[agent];
 	if (!config) return `.${agent}/skills`;

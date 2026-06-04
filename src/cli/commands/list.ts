@@ -12,6 +12,12 @@ type ListedSkill = {
 	path: string;
 };
 
+/**
+ * Get the list of search paths for skill discovery.
+ * Merges default skill paths with agent-specific discovery paths, deduplicated.
+ * @param customPaths - Optional custom paths to use instead of defaults.
+ * @returns Array of search paths for skill discovery.
+ */
 export function getListSearchPaths(customPaths?: string[]): string[] {
 	if (customPaths && customPaths.length > 0) {
 		return customPaths;
@@ -20,10 +26,22 @@ export function getListSearchPaths(customPaths?: string[]): string[] {
 	return [...new Set([...DEFAULT_SKILL_PATHS, ...getAllAgentDiscoveryPaths()])];
 }
 
+/**
+ * Format a skill source path for display.
+ * Currently returns the path as-is, but provides a hook for future path formatting.
+ * @param path - The full path to the skill directory.
+ * @returns The formatted source path string.
+ */
 export function formatSkillSourcePath(path: string): string {
 	return path;
 }
 
+/**
+ * Create a JSON-serializable entry object for a listed skill.
+ * Includes the skill name, description, path, and formatted source path.
+ * @param skill - The skill to convert to a JSON entry.
+ * @returns An object suitable for JSON output in the list command.
+ */
 export function getListJsonEntry(skill: ListedSkill) {
 	return {
 		name: skill.name,
@@ -33,6 +51,12 @@ export function getListJsonEntry(skill: ListedSkill) {
 	};
 }
 
+/**
+ * Create display line formatting for a listed skill.
+ * Provides formatted display properties for CLI table or list output.
+ * @param skill - The skill to format for display.
+ * @returns An object with display-ready properties including source path.
+ */
 export function getListDisplayLines(skill: ListedSkill) {
 	return {
 		name: skill.name,
