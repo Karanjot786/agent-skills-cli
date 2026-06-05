@@ -85,12 +85,9 @@ export function registerListCommand(program: Command) {
 					} else if (!options.quiet) {
 						console.log(chalk.yellow("No skills found."));
 						console.log(chalk.gray("Skills are searched in:"));
-						console.log(chalk.gray("  - ~/.skills/"));
-						console.log(chalk.gray("  - ./.skills/"));
-						console.log(chalk.gray("  - ~/.gemini/antigravity/skills/"));
-						console.log(chalk.gray("  - .agent/skills/"));
-						console.log(chalk.gray("  - .antigravity/skills/"));
-						console.log(chalk.gray("  - ./skills/"));
+						for (const p of config.searchPaths) {
+							console.log(chalk.gray(`  - ${p}`));
+						}
 					}
 					return;
 				}
