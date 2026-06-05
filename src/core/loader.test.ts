@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { mkdtemp, mkdir, rm, writeFile } from "fs/promises";
-import { tmpdir } from "os";
+import { homedir, tmpdir } from "os";
 import { join } from "path";
 import { DEFAULT_SKILL_PATHS, discoverSkills } from "./loader.js";
 
@@ -14,7 +14,7 @@ description: Demo skill
 
 describe("skill discovery paths", () => {
 	it("includes canonical .skills directories in the default search paths", () => {
-		const home = process.env.HOME || "";
+		const home = homedir();
 		const cwd = process.cwd();
 
 		expect(DEFAULT_SKILL_PATHS).toContain(join(home, ".skills"));
