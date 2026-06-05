@@ -60,7 +60,7 @@ export async function discoverSkills(
 				cwd: basePath,
 				absolute: true,
 				dot: true,
-				maxDepth: config.maxDepth || 3,
+				maxDepth: config.maxDepth ?? 3,
 			});
 
 			for (const skillMdPath of skillFiles) {
