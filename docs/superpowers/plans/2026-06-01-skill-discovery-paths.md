@@ -10,6 +10,8 @@
 
 ---
 
+## Implementation Tasks
+
 ### Task 1: Add regression tests for default discovery roots and deduplication
 
 **Files:**
