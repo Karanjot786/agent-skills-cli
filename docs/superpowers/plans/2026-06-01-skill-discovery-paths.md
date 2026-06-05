@@ -100,10 +100,14 @@ import type {
 
 export function getDefaultSkillPaths(cwd: string = process.cwd(), home: string = homedir()): string[] {
     return [
+        // Canonical storage used by `skills install`
         join(home, '.skills'),
         join(cwd, '.skills'),
-        join(home, '.antigravity', 'skills'),
+        // Antigravity compatibility / legacy locations
+        join(home, '.gemini', 'antigravity', 'skills'),
+        '.agent/skills',
         '.antigravity/skills',
+        // Local development skills
         './skills',
     ];
 }
