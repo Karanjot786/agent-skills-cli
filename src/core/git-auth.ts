@@ -262,7 +262,7 @@ export function sshToHttps(url: string): string {
 
 /**
  * Normalize a Git URL for cloning
- * Ensures URL has .git suffix and proper protocol
+ * Ensures a proper protocol for anything that isn't already an SSH URL
  */
 export function normalizeGitUrl(url: string): string {
     // Already an SSH URL — leave as-is
@@ -270,14 +270,14 @@ export function normalizeGitUrl(url: string): string {
         return url;
     }
 
-    // Ensure HTTPS prefix
+    // Everything past this point is treated as an HTTP(S) repo URL.
+    // We don't force a `.git` suffix: git's smart-HTTP protocol has no such
+    // requirement, it's purely a hosting-provider convention (GitHub, GitLab,
+    // Bitbucket use it; Azure DevOps `_git/repo` and AWS CodeCommit don't, and
+    // appending it there breaks the URL). Passing the URL through unchanged
+    // works everywhere; forcing a suffix only works on some hosts.
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
         url = `https://${url}`;
-    }
-
-    // Ensure .git suffix
-    if (!url.endsWith('.git')) {
-        url = `${url}.git`;
     }
 
     return url;
