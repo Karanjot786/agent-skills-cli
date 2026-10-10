@@ -104,9 +104,9 @@ export async function fetchFromDB(options: FetchOptions = {}): Promise<SkillsDBR
 
 /**
  * Get a specific skill by scoped name
- * Returns exact match for @author/name, or first match for just name
+ * Returns exact match for @author/name, or first match for just name (unless opts.exact)
  */
-export async function getSkillByScoped(scopedName: string): Promise<DBSkill | null> {
+export async function getSkillByScoped(scopedName: string, opts: { exact?: boolean } = {}): Promise<DBSkill | null> {
     const { author, name } = parseScopedName(scopedName);
 
     // Try exact name lookup first (works even for authors with thousands of skills)
@@ -138,7 +138,7 @@ export async function getSkillByScoped(scopedName: string): Promise<DBSkill | nu
     );
 
     if (exactMatch) return exactMatch;
-    if (author) return null;
+    if (author || opts.exact) return null;
     return result.skills[0] || null;
 }
 

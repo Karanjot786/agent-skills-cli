@@ -45,7 +45,7 @@ export async function maybeInstallItem(source: string, options: any): Promise<bo
     const explicit = options.type && options.type !== 'skill' ? options.type as ItemKind : undefined;
     if (options.type === 'skill') return false;
     if (!explicit && (!isItemSlug(source) || existsSync(source))) return false;
-    if (!explicit && await getSkillByScoped(source).catch(() => null)) {
+    if (!explicit && await getSkillByScoped(source, { exact: true }).catch(() => null)) {
         options.skill = [source];
         return false;
     }
