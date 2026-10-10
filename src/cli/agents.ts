@@ -2,14 +2,44 @@
  * Shared agent configuration used across CLI commands.
  */
 import { homedir } from 'os';
+import { join } from 'path';
 
 const home = homedir();
+
+/** Where and how a client stores MCP servers (paths verified against vendor docs 2026-10-09). */
+export interface McpTarget {
+    /** Project-relative config file; omitted when the client has only a user-level file */
+    projectFile?: string;
+    /** Absolute user-level config file */
+    globalFile: string;
+    format: 'json' | 'toml';
+    /** Key holding the server map */
+    key: string;
+    /** Write "type": "stdio" | "http" (Claude Code, VS Code) */
+    typeField?: boolean;
+    /** Field for a remote URL (Windsurf: serverUrl, Gemini CLI: httpUrl) */
+    urlField?: string;
+    /** Field for remote headers (Codex: http_headers) */
+    headersField?: string;
+    /** Client reads only local stdio servers from this file (Claude Desktop) */
+    stdioOnly?: boolean;
+}
 
 export interface AgentConfig {
     name: string;
     displayName: string;
     projectDir: string;
     globalDir: string;
+    mcp?: McpTarget;
+    agentsDir?: { project: string; global: string };
+    plugins?: boolean;
+}
+
+/** Per-OS application data dir (VS Code user mcp.json, Claude Desktop config). */
+function appDataDir(): string {
+    if (process.platform === 'darwin') return join(home, 'Library', 'Application Support');
+    if (process.platform === 'win32') return process.env.APPDATA || join(home, 'AppData', 'Roaming');
+    return process.env.XDG_CONFIG_HOME || join(home, '.config');
 }
 
 export const AGENTS: Record<string, AgentConfig> = {
@@ -18,24 +48,30 @@ export const AGENTS: Record<string, AgentConfig> = {
         displayName: 'Cursor',
         projectDir: '.cursor/skills',
         globalDir: `${home}/.cursor/skills`,
+        mcp: { projectFile: '.cursor/mcp.json', globalFile: `${home}/.cursor/mcp.json`, format: 'json', key: 'mcpServers' },
     },
     'claude': {
         name: 'claude',
         displayName: 'Claude Code',
         projectDir: '.claude/skills',
         globalDir: `${home}/.claude/skills`,
+        mcp: { projectFile: '.mcp.json', globalFile: `${home}/.claude.json`, format: 'json', key: 'mcpServers', typeField: true },
+        agentsDir: { project: '.claude/agents', global: `${home}/.claude/agents` },
+        plugins: true,
     },
     'copilot': {
         name: 'copilot',
         displayName: 'GitHub Copilot',
         projectDir: '.github/skills',
         globalDir: `${home}/.github/skills`,
+        mcp: { projectFile: '.vscode/mcp.json', globalFile: join(appDataDir(), 'Code', 'User', 'mcp.json'), format: 'json', key: 'servers', typeField: true },
     },
     'codex': {
         name: 'codex',
         displayName: 'Codex',
         projectDir: '.codex/skills',
         globalDir: `${home}/.codex/skills`,
+        mcp: { projectFile: '.codex/config.toml', globalFile: `${home}/.codex/config.toml`, format: 'toml', key: 'mcp_servers', headersField: 'http_headers' },
     },
     'antigravity': {
         name: 'antigravity',
@@ -122,6 +158,7 @@ export const AGENTS: Record<string, AgentConfig> = {
         displayName: 'Gemini CLI',
         projectDir: '.gemini/skills',
         globalDir: `${home}/.gemini/skills`,
+        mcp: { projectFile: '.gemini/settings.json', globalFile: `${home}/.gemini/settings.json`, format: 'json', key: 'mcpServers', urlField: 'httpUrl' },
     },
     'kiro-cli': {
         name: 'kiro-cli',
@@ -176,6 +213,7 @@ export const AGENTS: Record<string, AgentConfig> = {
         displayName: 'Windsurf',
         projectDir: '.windsurf/skills',
         globalDir: `${home}/.codeium/windsurf/skills`,
+        mcp: { globalFile: `${home}/.codeium/windsurf/mcp_config.json`, format: 'json', key: 'mcpServers', urlField: 'serverUrl' },
     },
     'zencoder': {
         name: 'zencoder',
@@ -294,6 +332,28 @@ export function getInstallPath(agent: string, global: boolean): string {
     const config = AGENTS[agent];
     if (!config) return `.${agent}/skills`;
     return global ? config.globalDir : config.projectDir;
+}
+
+/** Claude Desktop reads MCP servers but has no skills dir, so it stays out of AGENTS. Stdio only (remote = Connectors). */
+export const CLAUDE_DESKTOP = {
+    name: 'claude-desktop',
+    displayName: 'Claude Desktop',
+    mcp: { globalFile: join(appDataDir(), 'Claude', 'claude_desktop_config.json'), format: 'json', key: 'mcpServers', stdioOnly: true } as McpTarget,
+};
+
+export function getMcpTarget(agent: string): McpTarget | undefined {
+    return AGENTS[agent]?.mcp ?? (agent === CLAUDE_DESKTOP.name ? CLAUDE_DESKTOP.mcp : undefined);
+}
+
+export type InstallKind = 'skill' | 'mcp' | 'agent' | 'plugin';
+
+/** Agents that can receive an item of this kind, in AGENTS order. */
+export function agentsSupporting(kind: InstallKind): string[] {
+    const names = Object.keys(AGENTS);
+    if (kind === 'skill') return names;
+    if (kind === 'mcp') return [...names.filter(a => AGENTS[a].mcp), CLAUDE_DESKTOP.name];
+    if (kind === 'agent') return names.filter(a => AGENTS[a].agentsDir);
+    return names.filter(a => AGENTS[a].plugins);
 }
 
 // ── Adapter Factory ────────────────────────────────────────────────────
