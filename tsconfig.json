@@ -23,6 +23,7 @@
     "exclude": [
         "node_modules",
         "dist",
-        "skills"
+        "skills",
+        "src/**/*.test.ts"
     ]
 }
