@@ -9,7 +9,7 @@
  * - Local directories
  * - Lock file reinstallation
  */
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
 import inquirer from 'inquirer';
@@ -26,15 +26,31 @@ import {
     sanitizeUrl,
 } from '../../core/index.js';
 import { trackCommand } from '../../core/telemetry.js';
+import { hashText } from '../../core/integrity.js';
+import { maybeInstallItem, gateDir } from './install-item.js';
+import { mkdtemp as mkdtempM, mkdir as mkdirM, cp as cpM, rm as rmM, readFile as readFileM } from 'fs/promises';
+import { existsSync as existsSyncM } from 'fs';
+import { tmpdir } from 'os';
+import { join as joinM, basename as basenameM } from 'path';
 
-/** Install a skill from its database record into a target directory */
-async function installSkillFromDatabase(skill: any, targetDir: string): Promise<string> {
+/** Install a marketplace skill: download to staging, scan, then copy into targetDir. */
+// ponytail: scans once per target agent (no verdict cache); add one if multi-agent installs feel slow.
+async function installSkillFromDatabase(skill: any, targetDir: string, skipAudit = false): Promise<string> {
     const githubUrl = skill.github_url || skill.githubUrl;
-    if (githubUrl) {
-        const result = await installFromGitHubUrl(githubUrl, targetDir);
-        return result.path;
+    if (!githubUrl) throw new Error(`No GitHub URL found for skill ${skill.name}`);
+    const staging = await mkdtempM(joinM(tmpdir(), 'skill-db-'));
+    try {
+        const result = await installFromGitHubUrl(githubUrl, staging);
+        if (!(await gateDir(skill.scoped_name || skill.scopedName || skill.name, result.path, skipAudit))) {
+            throw new Error('blocked by security scan (re-run with --skip-audit to override)');
+        }
+        const dest = joinM(targetDir, basenameM(result.path));
+        await mkdirM(targetDir, { recursive: true });
+        await cpM(result.path, dest, { recursive: true, force: true });
+        return dest;
+    } finally {
+        await rmM(staging, { recursive: true, force: true }).catch(() => { });
     }
-    throw new Error(`No GitHub URL found for skill ${skill.name}`);
 }
 
 export function registerInstallCommand(program: Command) {
@@ -51,6 +67,9 @@ export function registerInstallCommand(program: Command) {
         .option('--token <token>', 'Authentication token for private Git repos')
         .option('--registry <url>', 'npm registry URL (for npm: sources)')
         .option('--dry-run', 'Show matched skills without installing')
+        .addOption(new Option('-t, --type <type>', 'Item type (auto-detected when omitted)').choices(['skill', 'mcp', 'agent', 'plugin']))
+        .option('-e, --env <KEY=VALUE>', 'Env var for an MCP server (repeatable)', (v: string, prev: string[]) => [...prev, v], [] as string[])
+        .option('--skip-audit', 'Install even when the security scan finds critical issues')
         .action(async (source, options) => {
             try {
                 const { mkdir, cp, rm, readdir, readFile } = await import('fs/promises');
@@ -62,6 +81,13 @@ export function registerInstallCommand(program: Command) {
                 const execAsync = promisify(exec);
 
                 const isGlobal = options.global || false;
+
+                // MCP servers, subagents and plugins from agentskills.in (before skill agent selection:
+                // they have their own agent list, e.g. claude-desktop)
+                if (source) {
+                    if (await maybeInstallItem(source, options)) return;
+                    if (options.skill?.[0] === source) source = undefined; // skill first: route through -s
+                }
 
                 // Determine agents
                 let agents: string[] = options.agent || [];
@@ -235,7 +261,7 @@ export function registerInstallCommand(program: Command) {
                                         for (const agent of agents) {
                                             const config = AGENTS[agent];
                                             const targetDir = isGlobal ? config.globalDir : config.projectDir;
-                                            const installed = await installSkillFromDatabase(skill as any, targetDir);
+                                            const installed = await installSkillFromDatabase(skill as any, targetDir, options.skipAudit);
                                             installedPath ??= installed;
                                         }
                                         const lockEntry = createLockEntry({
@@ -286,7 +312,7 @@ export function registerInstallCommand(program: Command) {
                                 for (const agent of agents) {
                                     const config = AGENTS[agent];
                                     const targetDir = isGlobal ? config.globalDir : config.projectDir;
-                                    const installed = await installSkillFromDatabase(skill as any, targetDir);
+                                    const installed = await installSkillFromDatabase(skill as any, targetDir, options.skipAudit);
                                     installedPath ??= installed;
                                 }
 
@@ -325,6 +351,7 @@ export function registerInstallCommand(program: Command) {
 
                     const skillName = basename(sourcePath);
                     console.log(chalk.bold(`\n📦 Installing from local directory: ${skillName}\n`));
+                    if (!(await gateDir(skillName, sourcePath, !!options.skipAudit))) { process.exitCode = 1; return; }
 
                     for (const agent of agents) {
                         const config = AGENTS[agent];
@@ -369,7 +396,7 @@ export function registerInstallCommand(program: Command) {
                             for (const agent of agents) {
                                 const config = AGENTS[agent];
                                 const targetDir = isGlobal ? config.globalDir : config.projectDir;
-                                const installed = await installSkillFromDatabase(skill as any, targetDir);
+                                const installed = await installSkillFromDatabase(skill as any, targetDir, options.skipAudit);
                                 installedPath ??= installed;
                             }
 
@@ -463,6 +490,7 @@ export function registerInstallCommand(program: Command) {
                             const skillName = skillSourceDir === extractedDir
                                 ? pkgName
                                 : basename(skillSourceDir);
+                            if (!(await gateDir(skillName, skillSourceDir, !!options.skipAudit))) continue;
 
                             for (const agent of agents) {
                                 const config = AGENTS[agent];
@@ -534,7 +562,7 @@ export function registerInstallCommand(program: Command) {
                                 for (const agent of agents) {
                                     const config = AGENTS[agent];
                                     const targetDir = isGlobal ? config.globalDir : config.projectDir;
-                                    const installed = await installSkillFromDatabase(skill as any, targetDir);
+                                    const installed = await installSkillFromDatabase(skill as any, targetDir, options.skipAudit);
                                     installedPath ??= installed;
                                 }
 
@@ -685,6 +713,7 @@ export function registerInstallCommand(program: Command) {
 
                     for (const skillSourceDir of skillDirs) {
                         const skillName = skillSourceDir === tempDir ? repoName : basename(skillSourceDir);
+                        if (!(await gateDir(skillName, skillSourceDir, !!options.skipAudit))) continue;
 
                         for (const agent of agents) {
                             const config = AGENTS[agent];
@@ -718,6 +747,8 @@ export function registerInstallCommand(program: Command) {
                             agents,
                             canonicalPath: join(isGlobal ? AGENTS[agents[0]].globalDir : AGENTS[agents[0]].projectDir, skillName),
                             isGlobal,
+                            commit: version,
+                            contentHash: existsSyncM(joinM(skillSourceDir, 'SKILL.md')) ? hashText(await readFileM(joinM(skillSourceDir, 'SKILL.md'), 'utf-8')) : undefined,
                         });
                         await addSkillToLock(lockEntry);
                     }
