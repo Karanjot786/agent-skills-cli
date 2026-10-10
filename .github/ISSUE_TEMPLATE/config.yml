@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Index my repo or skill
+    url: https://www.agentskills.in/#submit
+    about: Use the submit form on the site. It indexes your repo within minutes. Please do not open an issue for index requests.
+  - name: Dispute a scan finding
+    url: https://www.agentskills.in/takedown
+    about: Findings are automated. See the dispute steps.

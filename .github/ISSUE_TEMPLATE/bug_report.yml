@@ -1,0 +1,15 @@
+name: Bug report
+description: Something in the CLI or site is broken
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes: { label: CLI version (npx agent-skills-cli --version), placeholder: "1.2.0" }
+    validations: { required: true }
+  - type: input
+    id: agent
+    attributes: { label: Agent (Cursor, Claude Code, Copilot, ...) }
+  - type: textarea
+    id: what
+    attributes: { label: What happened and what did you expect, description: "Paste the command and the output." }
+    validations: { required: true }
