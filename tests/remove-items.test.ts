@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest';
-import { mkdtemp, mkdir, writeFile } from 'fs/promises';
+import { mkdtemp, mkdir, writeFile, readFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -21,6 +21,14 @@ beforeAll(async () => {
 });
 
 describe('remove', () => {
+    it('removes an MCP entry from its config file and the lock, keeping other servers', async () => {
+        const f = join(proj, '.mcp.json');
+        await writeFile(f, JSON.stringify({ mcpServers: { weather: { command: 'npx' }, keep: { command: 'uvx' } } }));
+        await lock.addSkillToLock(lock.createLockEntry({ name: 'weather', scopedName: 'mcp/acme--weather', source: 'x', sourceType: 'database', agents: ['claude'], canonicalPath: f, isGlobal: false, projectDir: proj, type: 'mcp', configTarget: [{ agent: 'claude', file: f, key: 'mcpServers', name: 'weather' }] }));
+        await remove.removeCommand(['mcp:weather'], { yes: true }, agents.AGENTS);
+        expect(JSON.parse(await readFile(f, 'utf-8'))).toEqual({ mcpServers: { keep: { command: 'uvx' } } });
+        expect((await lock.readLock()).skills['mcp:weather']).toBeUndefined();
+    });
     it('does not delete sibling skills when canonicalPath is the whole agent dir (pre-1.1.10 bug)', async () => {
         const dir = join(proj, '.claude/skills');
         for (const s of ['a', 'b']) { await mkdir(join(dir, s), { recursive: true }); await writeFile(join(dir, s, 'SKILL.md'), s); }

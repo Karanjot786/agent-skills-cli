@@ -13,8 +13,12 @@ import {
     readLock,
     removeSkillFromLock,
     listInstalledSkills,
+    lockKey,
     type LockEntry
 } from '../../core/skill-lock.js';
+import { getMcpTarget } from '../agents.js';
+import { removeMcpServer } from '../../core/mcp-config.js';
+import { uninstallPlugin } from '../../core/item-installer.js';
 
 /**
  * Agent configuration (imported from main CLI)
@@ -84,7 +88,8 @@ export async function removeCommand(
             const scopedMatch = namesLower.includes(
                 s.scopedName?.toLowerCase().replace(/^@/, '') || ''
             );
-            return nameMatch || scopedMatch;
+            const keyMatch = namesLower.includes(lockKey(s).toLowerCase());
+            return nameMatch || scopedMatch || keyMatch;
         });
 
         if (selectedSkills.length === 0) {
@@ -95,7 +100,7 @@ export async function removeCommand(
     } else {
         // Interactive selection
         const choices = installed.map(s => ({
-            value: s.name,
+            value: lockKey(s),
             label: `${s.name} ${chalk.dim(`(${s.agents.join(', ')})`)}`,
             hint: s.scopedName || s.source
         }));
@@ -113,7 +118,7 @@ export async function removeCommand(
         }
 
         selectedSkills = installed.filter(s =>
-            (selected as string[]).includes(s.name)
+            (selected as string[]).includes(lockKey(s))
         );
     }
 
@@ -159,6 +164,17 @@ export async function removeCommand(
 
     for (const skill of selectedSkills) {
         try {
+            const type = skill.type ?? 'skill';
+            if (type === 'mcp') {
+                for (const t of skill.configTarget ?? []) {
+                    const target = getMcpTarget(t.agent);
+                    if (target && existsSync(t.file)) await removeMcpServer(t.file, target, t.name);
+                }
+            } else if (type === 'agent') {
+                for (const t of skill.configTarget ?? []) if (existsSync(t.file)) await rm(t.file, { force: true });
+            } else if (type === 'plugin') {
+                for (const t of skill.configTarget ?? []) await uninstallPlugin(t.name, t.file);
+            } else {
             // Remove from each agent directory
             for (const agentName of skill.agents) {
                 const agentConfig = agentConfigs[agentName];
@@ -183,9 +199,10 @@ export async function removeCommand(
             if (canonical && agentDirs.includes(dirname(canonical)) && existsSync(canonical)) {
                 await rm(canonical, { recursive: true, force: true });
             }
+            }
 
             // Remove from lock file
-            await removeSkillFromLock(skill.name);
+            await removeSkillFromLock(lockKey(skill));
 
             removed++;
         } catch (err: any) {

@@ -337,10 +337,15 @@ export function registerUpdateCommand(program: Command) {
                     return;
                 }
 
+                // Non-skill items are re-resolved from agentskills.in by install
+                for (const s of skillsToUpdate.filter(s => (s.type ?? 'skill') !== 'skill')) {
+                    console.log(chalk.gray(`  ${s.scopedName}: run \`skills install ${s.scopedName.split('/').pop()} --type ${s.type}${s.isGlobal ? ' -g' : ''} -y\` to update`));
+                }
+
                 // Filter to only updateable skills (github/gitlab/private-git)
-                const updateable = skillsToUpdate.filter(s =>
+                const updateable = skillsToUpdate.filter(s => (s.type ?? 'skill') === 'skill' && (
                     s.sourceType === 'github' || s.sourceType === 'gitlab' || s.sourceType === 'database' || s.sourceType === 'private-git'
-                );
+                ));
 
                 if (updateable.length === 0) {
                     console.log(chalk.yellow('\n📦 No remote skills to update.'));
