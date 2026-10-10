@@ -4,11 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ## [1.2.0] - 2026-10-09
 
+### Features
+- **MCP servers, subagents and plugins** — `skills install <slug>` auto-detects the type; force one with `--type mcp|agent|plugin`. MCP config files are merged, never overwritten, and a `.bak` is written first.
+- **Install-time security scan** — every skill and subagent is scanned before it is copied. Critical findings block the install; `--skip-audit` overrides.
+- **`skills audit`** — audits installed skills against agentskills.in advisories. Supports `--fail-on`, `--json` and `--offline` for CI.
+- **Token cost in `skills list`** — `--table` and `--json` include an estimated token column.
+
 ### Bug Fixes
 - `submit-repo` sends only `owner/repo`; the server now fetches from GitHub with a token and reports rate limits correctly (fixes #29, #33, #34, #37)
 - Telemetry posts to the live `www` endpoint; search text and command arguments are no longer sent
 - Clone URLs no longer get a forced `.git` suffix, so Azure DevOps and CodeCommit work (PR #31, thanks @nicostoppel)
 - `skills list` finds installed skills across discovery paths (PR #17, fixes #15, thanks @KirioXX)
+- Telemetry counts every command run, not only `install`, and reports the real CLI version (it was hardcoded to 1.0.8)
+- Bare slug installs check skills first, using an exact name match
+- `remove` deletes MCP, subagent and plugin items by type, never a whole agent skills directory or a local source folder; `update` skips non-skill items
+- Replaced subagent files are backed up before overwrite; symlinked MCP configs are kept
 
 ### Privacy
 - First-run telemetry notice and README disclosure; opt out with `DISABLE_TELEMETRY` or `DO_NOT_TRACK`

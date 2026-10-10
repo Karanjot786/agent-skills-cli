@@ -10,7 +10,7 @@
 
 Install skills from the world's largest marketplace and sync them to **45 AI agents** including Cursor, Claude Code, GitHub Copilot, Windsurf, Cline, Gemini CLI, Zed, and more — all with a single command.
 
-**What's new in v1.1.9:** `-a` now accepts comma-separated agent lists (`-a claude,cursor`), unknown agent names show a clear error instead of crashing on undefined lookup. Thanks to [@10432mztn](https://github.com/10432mztn) for the fix.
+**What's new in v1.2.0:** MCP servers, subagents and plugins install from the marketplace, with an install-time security scan and `skills audit` for what's already installed. `skills list --table` shows an estimated token cost per skill. Telemetry counts every command run and is documented in full below.
 
 🌐 **Website:** [agentskills.in](https://agentskills.in)
 
@@ -24,7 +24,7 @@ skills install @anthropic/xlsx
 ## ✨ Features
 
 - **175,000+ Skills** — Access the largest collection of AI agent skills
-- **42 AI Agents** — Cursor, Claude, Copilot, Windsurf, Cline, Gemini CLI, Zed, and 35+ more
+- **45 AI Agents** — Cursor, Claude, Copilot, Windsurf, Cline, Gemini CLI, Zed, and 35+ more
 - **FZF Interactive Search** — Real-time search with keyboard navigation: `skills search -i`
 - **Conflict Detection** — Find contradictions and overlaps across skills: `skills doctor --deep`
 - **Context Budget** — Smart token-aware skill selection for your project: `skills budget -b 8000`
@@ -42,6 +42,9 @@ skills install @anthropic/xlsx
 - **Quality Scoring** — 4-dimension skill scoring (0–100): `skills score`
 - **Lock File Tracking** — Track all installations in `~/.skills/skills.lock`
 - **Platform Targeting** — Install to specific platforms with `-t claude,cursor`
+- **MCP Servers, Subagents & Plugins** — Install by slug, auto-detected or forced: `skills install acme--weather --type mcp`
+- **Install-Time Security Scan** — Every skill is scanned before it is copied; audit installed skills with `skills audit`
+- **Token Cost Estimates** — See the context cost of each skill: `skills list --table`
 
 ---
 
@@ -75,7 +78,7 @@ skills install npm:@company/skills --registry https://npm.company.com
 # Install to specific platforms
 skills install @facebook/verify -a claude,cursor
 
-# Install to ALL 42 platforms at once
+# Install to ALL 45 platforms at once
 skills install @lobehub/typescript --all
 
 # Install globally (home directory)
