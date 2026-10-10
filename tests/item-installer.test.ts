@@ -63,6 +63,14 @@ describe('installAgentItem', () => {
         const ok = { ...bad, install: { ...bad.install, file: 'ok.md' } } as ItemRecord;
         await expect(m.installAgentItem(ok, 'x', ['cursor'], { global: false, cwd })).rejects.toThrow(/does not support subagents/);
     });
+    it('backs up an existing subagent file with the same name before replacing it', async () => {
+        const cwd = await mkdtemp(join(tmpdir(), 'askl-proj-'));
+        const item: ItemRecord = { type: 'agent', slug: 'a--r', name: 'reviewer', description: null, install: { type: 'agent', file: 'reviewer.md', rawUrl: 'https://raw.githubusercontent.com/a/r/main/reviewer.md' } };
+        await m.installAgentItem(item, 'mine', ['claude'], { global: false, cwd });
+        await m.installAgentItem(item, 'theirs', ['claude'], { global: false, cwd });
+        expect(await readFile(join(cwd, '.claude/agents/reviewer.md'), 'utf8')).toBe('theirs');
+        expect(await readFile(join(cwd, '.claude/agents/reviewer.md.bak'), 'utf8')).toBe('mine');
+    });
     it('downloadText refuses http', async () => {
         await expect(m.downloadText('http://x/a.md')).rejects.toThrow(/non-https/);
     });

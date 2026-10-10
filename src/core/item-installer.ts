@@ -2,7 +2,8 @@
  * Installers for non-skill catalog items: MCP servers (config merge), subagents (file copy),
  * plugins (delegated to the `claude` CLI).
  */
-import { mkdir, writeFile } from 'fs/promises';
+import { mkdir, writeFile, copyFile } from 'fs/promises';
+import { existsSync } from 'fs';
 import { join, basename } from 'path';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
@@ -85,6 +86,10 @@ export async function installAgentItem(item: ItemRecord, content: string, agents
         const dir = opts.global ? dirs.global : join(opts.cwd, dirs.project);
         await mkdir(dir, { recursive: true });
         const file = join(dir, fileName);
+        if (existsSync(file)) {
+            await copyFile(file, `${file}.bak`);
+            console.log(`  replacing ${file} (backup ${file}.bak)`);
+        }
         await writeFile(file, content, 'utf-8');
         out.push({ agent, file, key: 'agentsDir', name: fileName });
     }

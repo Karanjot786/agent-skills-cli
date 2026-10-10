@@ -3,7 +3,7 @@
  * Never touches other entries; backs up to <file>.bak; refuses files it cannot parse safely.
  * TOML: no dependency — we rewrite only our own [<key>.<name>] table (and its sub-tables).
  */
-import { readFile, writeFile, copyFile, mkdir, rename, stat } from 'fs/promises';
+import { readFile, writeFile, copyFile, mkdir, rename, stat, realpath, lstat } from 'fs/promises';
 import { existsSync } from 'fs';
 import { dirname } from 'path';
 
@@ -135,6 +135,8 @@ export function upsertToml(text: string, key: string, name: string, entry: Recor
 // ── File I/O ──────────────────────────────────────────────────────────
 
 async function commitFile(file: string, text: string): Promise<string | undefined> {
+    // Write through a dotfile symlink so the link survives.
+    if ((await lstat(file).catch(() => null))?.isSymbolicLink()) file = await realpath(file);
     await mkdir(dirname(file), { recursive: true });
     let backup: string | undefined;
     let mode = 0o600; // new files may hold secrets

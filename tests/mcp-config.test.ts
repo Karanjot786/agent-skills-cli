@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { mkdtemp, writeFile, readFile, stat } from 'fs/promises';
+import { mkdtemp, writeFile, readFile, stat, symlink, lstat } from 'fs/promises';
 import { existsSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -100,5 +100,20 @@ describe('TOML config (Codex)', () => {
         const after = await readFile(f, 'utf-8');
         expect(after).not.toMatch(/mcp_servers\.github/);
         expect(after).toMatch(/\[mcp_servers\.other\]/);
+    });
+});
+
+describe('symlinked config', () => {
+    it('writes through the link and keeps it a link', async () => {
+        const d = await mkdtemp(join(tmpdir(), 'askl-link-'));
+        const real = join(d, 'dotfiles-mcp.json');
+        await writeFile(real, '{"mcpServers":{"keep":{"command":"x"}}}');
+        const link = join(d, '.mcp.json');
+        await symlink(real, link);
+        await writeMcpServer(link, claude, 'github', { type: 'stdio', command: 'npx' });
+        expect((await lstat(link)).isSymbolicLink()).toBe(true);
+        const doc = JSON.parse(await readFile(real, 'utf8'));
+        expect(Object.keys(doc.mcpServers)).toEqual(['keep', 'github']);
+        expect(existsSync(real + '.bak')).toBe(true);
     });
 });
