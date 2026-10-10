@@ -165,15 +165,20 @@ export {
     getInstalledSkillCount,
     updateSkillVersion,
     updateSkillAgents,
-    createLockEntry
+    createLockEntry,
+    lockKey
 } from './skill-lock.js';
 
 export type {
     SourceType,
     LockEntry,
     SkillsLock,
-    ListOptions
+    ListOptions,
+    ItemType,
+    ConfigTarget
 } from './skill-lock.js';
+
+export { hashText } from './integrity.js';
 
 // Suggest engine (project-aware recommendations)
 export {

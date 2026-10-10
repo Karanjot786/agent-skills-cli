@@ -18,6 +18,20 @@ const LOCK_FILE = join(homedir(), '.skills', 'skills.lock');
  */
 export type SourceType = 'database' | 'github' | 'gitlab' | 'bitbucket' | 'npm' | 'private-git' | 'local';
 
+/** Catalog item type. Lock entries written before v1.3 have no type and are skills. */
+export type ItemType = 'skill' | 'mcp' | 'agent' | 'plugin';
+
+/** Where a non-skill item was written (see LockEntry.configTarget). */
+export interface ConfigTarget {
+    agent: string;
+    /** mcp: config file · agent: written .md file · plugin: scope (user|project) */
+    file: string;
+    /** mcp: server-map key · agent: 'agentsDir' · plugin: 'plugin' */
+    key: string;
+    /** mcp: server name · agent: file name · plugin: '<plugin>@<marketplace>' */
+    name: string;
+}
+
 /**
  * Lock entry for a single installed skill
  */
@@ -44,6 +58,14 @@ export interface LockEntry {
     isGlobal: boolean;
     /** Project directory (for project installations) */
     projectDir?: string;
+    /** Item type (default 'skill') */
+    type?: ItemType;
+    /** Config files / paths written for mcp, agent and plugin items */
+    configTarget?: ConfigTarget[];
+    /** hashText() of the primary file (SKILL.md, subagent .md) or of JSON.stringify(install spec) */
+    contentHash?: string;
+    /** Git commit the content came from */
+    commit?: string;
 }
 
 /**
@@ -86,17 +108,22 @@ export async function writeLock(lock: SkillsLock): Promise<void> {
     await writeFile(LOCK_FILE, JSON.stringify(lock, null, 2));
 }
 
+/** Lock map key: skills keep their bare name (old lock files stay valid); other types are prefixed. */
+export function lockKey(entry: Pick<LockEntry, 'name' | 'type'>): string {
+    return !entry.type || entry.type === 'skill' ? entry.name : `${entry.type}:${entry.name}`;
+}
+
 /**
- * Add or update a skill in the lock file
+ * Add or update an entry in the lock file
  */
 export async function addSkillToLock(entry: LockEntry): Promise<void> {
     const lock = await readLock();
-    lock.skills[entry.name] = entry;
+    lock.skills[lockKey(entry)] = entry;
     await writeLock(lock);
 }
 
 /**
- * Remove a skill from the lock file
+ * Remove an entry by lock key (`lockKey(entry)`)
  */
 export async function removeSkillFromLock(skillName: string): Promise<void> {
     const lock = await readLock();
@@ -205,6 +232,10 @@ export function createLockEntry(
         canonicalPath: string;
         isGlobal: boolean;
         projectDir?: string;
+        type?: ItemType;
+        configTarget?: ConfigTarget[];
+        contentHash?: string;
+        commit?: string;
     }
 ): LockEntry {
     return {
@@ -218,5 +249,9 @@ export function createLockEntry(
         canonicalPath: options.canonicalPath,
         isGlobal: options.isGlobal,
         projectDir: options.projectDir,
+        type: options.type ?? 'skill',
+        configTarget: options.configTarget,
+        contentHash: options.contentHash,
+        commit: options.commit,
     };
 }
