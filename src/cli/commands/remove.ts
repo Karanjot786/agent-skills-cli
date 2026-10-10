@@ -7,7 +7,7 @@ import * as p from '@clack/prompts';
 import chalk from 'chalk';
 import { rm } from 'fs/promises';
 import { existsSync } from 'fs';
-import { join } from 'path';
+import { join, resolve, dirname } from 'path';
 import { homedir } from 'os';
 import {
     readLock,
@@ -173,9 +173,15 @@ export async function removeCommand(
                 }
             }
 
-            // Remove canonical copy
-            if (skill.canonicalPath && existsSync(skill.canonicalPath)) {
-                await rm(skill.canonicalPath, { recursive: true, force: true });
+            // Remove the canonical copy only when it is a folder directly inside one of the skill's agent dirs.
+            // Pre-1.1.10 installs stored the whole agent skills dir (or a local install's source folder) here.
+            const agentDirs = skill.agents
+                .map((a) => agentConfigs[a])
+                .filter(Boolean)
+                .map((c) => resolve(skill.isGlobal ? c.globalDir : join(cwd, c.projectDir)));
+            const canonical = skill.canonicalPath ? resolve(cwd, skill.canonicalPath) : '';
+            if (canonical && agentDirs.includes(dirname(canonical)) && existsSync(canonical)) {
+                await rm(canonical, { recursive: true, force: true });
             }
 
             // Remove from lock file

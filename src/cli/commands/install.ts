@@ -231,10 +231,12 @@ export function registerInstallCommand(program: Command) {
                                 for (const skill of matches) {
                                     const sSpinner = ora(`Installing ${(skill as any).scopedName || skill.name}...`).start();
                                     try {
+                                        let installedPath: string | undefined;
                                         for (const agent of agents) {
                                             const config = AGENTS[agent];
                                             const targetDir = isGlobal ? config.globalDir : config.projectDir;
-                                            await installSkillFromDatabase(skill as any, targetDir);
+                                            const installed = await installSkillFromDatabase(skill as any, targetDir);
+                                            installedPath ??= installed;
                                         }
                                         const lockEntry = createLockEntry({
                                             name: skill.name,
@@ -243,7 +245,7 @@ export function registerInstallCommand(program: Command) {
                                             sourceType: (skill as any).github_url || (skill as any).githubUrl ? 'github' : 'database',
                                             version: (skill as any).version,
                                             agents,
-                                            canonicalPath: isGlobal ? AGENTS[agents[0]].globalDir : AGENTS[agents[0]].projectDir,
+                                            canonicalPath: installedPath ?? (isGlobal ? AGENTS[agents[0]].globalDir : AGENTS[agents[0]].projectDir),
                                             isGlobal,
                                         });
                                         await addSkillToLock(lockEntry);
@@ -280,10 +282,12 @@ export function registerInstallCommand(program: Command) {
 
                                 spinner.text = `Installing ${(skill as any).scoped_name || skill.name}...`;
 
+                                let installedPath: string | undefined;
                                 for (const agent of agents) {
                                     const config = AGENTS[agent];
                                     const targetDir = isGlobal ? config.globalDir : config.projectDir;
-                                    await installSkillFromDatabase(skill as any, targetDir);
+                                    const installed = await installSkillFromDatabase(skill as any, targetDir);
+                                    installedPath ??= installed;
                                 }
 
                                 const lockEntry = createLockEntry({
@@ -293,7 +297,7 @@ export function registerInstallCommand(program: Command) {
                                     sourceType: (skill as any).github_url ? 'github' : 'database',
                                     version: (skill as any).version,
                                     agents,
-                                    canonicalPath: isGlobal ? AGENTS[agents[0]].globalDir : AGENTS[agents[0]].projectDir,
+                                    canonicalPath: installedPath ?? (isGlobal ? AGENTS[agents[0]].globalDir : AGENTS[agents[0]].projectDir),
                                     isGlobal,
                                 });
                                 await addSkillToLock(lockEntry);
@@ -340,7 +344,7 @@ export function registerInstallCommand(program: Command) {
                         source: sourcePath,
                         sourceType: 'local',
                         agents,
-                        canonicalPath: sourcePath,
+                        canonicalPath: join(isGlobal ? AGENTS[agents[0]].globalDir : AGENTS[agents[0]].projectDir, skillName),
                         isGlobal,
                     });
                     await addSkillToLock(lockEntry);
@@ -361,10 +365,12 @@ export function registerInstallCommand(program: Command) {
                         if (skill) {
                             spinner.text = `Installing ${(skill as any).scoped_name || skill.name}...`;
 
+                            let installedPath: string | undefined;
                             for (const agent of agents) {
                                 const config = AGENTS[agent];
                                 const targetDir = isGlobal ? config.globalDir : config.projectDir;
-                                await installSkillFromDatabase(skill as any, targetDir);
+                                const installed = await installSkillFromDatabase(skill as any, targetDir);
+                                installedPath ??= installed;
                             }
 
                             const lockEntry = createLockEntry({
@@ -374,7 +380,7 @@ export function registerInstallCommand(program: Command) {
                                 sourceType: (skill as any).github_url ? 'github' : 'database',
                                 version: (skill as any).version,
                                 agents,
-                                canonicalPath: isGlobal ? AGENTS[agents[0]].globalDir : AGENTS[agents[0]].projectDir,
+                                canonicalPath: installedPath ?? (isGlobal ? AGENTS[agents[0]].globalDir : AGENTS[agents[0]].projectDir),
                                 isGlobal,
                             });
                             await addSkillToLock(lockEntry);
@@ -483,7 +489,7 @@ export function registerInstallCommand(program: Command) {
                                 sourceType: 'npm',
                                 version,
                                 agents,
-                                canonicalPath: isGlobal ? AGENTS[agents[0]].globalDir : AGENTS[agents[0]].projectDir,
+                                canonicalPath: join(isGlobal ? AGENTS[agents[0]].globalDir : AGENTS[agents[0]].projectDir, skillName),
                                 isGlobal,
                             });
                             await addSkillToLock(lockEntry);
@@ -524,10 +530,12 @@ export function registerInstallCommand(program: Command) {
                             if (skill) {
                                 spinner.text = `Installing ${(skill as any).scoped_name || skill.name}...`;
 
+                                let installedPath: string | undefined;
                                 for (const agent of agents) {
                                     const config = AGENTS[agent];
                                     const targetDir = isGlobal ? config.globalDir : config.projectDir;
-                                    await installSkillFromDatabase(skill as any, targetDir);
+                                    const installed = await installSkillFromDatabase(skill as any, targetDir);
+                                    installedPath ??= installed;
                                 }
 
                                 const lockEntry = createLockEntry({
@@ -537,7 +545,7 @@ export function registerInstallCommand(program: Command) {
                                     sourceType: (skill as any).github_url ? 'github' : 'database',
                                     version: (skill as any).version,
                                     agents,
-                                    canonicalPath: isGlobal ? AGENTS[agents[0]].globalDir : AGENTS[agents[0]].projectDir,
+                                    canonicalPath: installedPath ?? (isGlobal ? AGENTS[agents[0]].globalDir : AGENTS[agents[0]].projectDir),
                                     isGlobal,
                                 });
                                 await addSkillToLock(lockEntry);
@@ -708,7 +716,7 @@ export function registerInstallCommand(program: Command) {
                             sourceType: sourceType as any,
                             version,
                             agents,
-                            canonicalPath: isGlobal ? AGENTS[agents[0]].globalDir : AGENTS[agents[0]].projectDir,
+                            canonicalPath: join(isGlobal ? AGENTS[agents[0]].globalDir : AGENTS[agents[0]].projectDir, skillName),
                             isGlobal,
                         });
                         await addSkillToLock(lockEntry);

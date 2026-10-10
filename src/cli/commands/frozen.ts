@@ -17,7 +17,10 @@ export function registerFrozenCommand(program: Command) {
                 const { existsSync } = await import('fs');
                 const { readFile, rm, mkdir, cp } = await import('fs/promises');
                 const { homedir } = await import('os');
-                const { join } = await import('path');
+                const { join, basename } = await import('path');
+                // canonicalPath is the skill folder since 1.1.10; older lock entries hold its parent dir.
+                const skillDirOf = (e: { canonicalPath: string; name: string }) =>
+                    basename(e.canonicalPath) === e.name ? e.canonicalPath : join(e.canonicalPath, e.name);
                 const { readLock } = await import('../../core/skill-lock.js');
                 const { exec } = await import('child_process');
                 const { promisify } = await import('util');
@@ -43,7 +46,7 @@ export function registerFrozenCommand(program: Command) {
                     try {
                         if (options.verify) {
                             // Verify mode: check if skill exists and matches
-                            const exists = existsSync(join(entry.canonicalPath, entry.name, 'SKILL.md'));
+                            const exists = existsSync(join(skillDirOf(entry), 'SKILL.md'));
                             if (exists) {
                                 spinner.succeed(`${entry.name} ${chalk.gray('✓ verified')}`);
                                 passed++;
@@ -76,7 +79,7 @@ export function registerFrozenCommand(program: Command) {
                                     }
 
                                     // Copy to canonical path
-                                    const destDir = join(entry.canonicalPath, entry.name);
+                                    const destDir = skillDirOf(entry);
                                     await mkdir(destDir, { recursive: true });
 
                                     // Find SKILL.md in cloned repo
