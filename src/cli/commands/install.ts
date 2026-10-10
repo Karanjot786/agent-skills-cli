@@ -493,7 +493,7 @@ export function registerInstallCommand(program: Command) {
                         await rm(tempDir, { recursive: true, force: true }).catch(() => { });
 
                         console.log(chalk.bold.green(`\n✨ Installed ${skillDirs.length} skill(s) from npm:${spec}\n`));
-                        trackCommand('install', `source=npm:${spec} count=${skillDirs.length}`);
+                        trackCommand('install');
                     } catch (err: any) {
                         packSpinner.fail(`npm error: ${err.message}`);
                         await rm(tempDir, { recursive: true, force: true }).catch(() => { });
@@ -719,7 +719,7 @@ export function registerInstallCommand(program: Command) {
 
                     console.log(chalk.bold.green(`\n✨ Installed ${skillDirs.length} skill(s)\n`));
 
-                    trackCommand('install', `source=${sanitizeUrl(parsed.url)} count=${skillDirs.length}`);
+                    trackCommand('install');
                     return;
                 }
 

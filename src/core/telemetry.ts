@@ -6,7 +6,11 @@
  * Automatically disabled in CI environments
  */
 
-const TELEMETRY_URL = 'https://agentskills.in/api/telemetry';
+import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import { homedir } from 'os';
+import { join } from 'path';
+
+const TELEMETRY_URL = 'https://www.agentskills.in/api/telemetry';
 
 // Telemetry event types
 interface InstallTelemetryData {
@@ -14,12 +18,10 @@ interface InstallTelemetryData {
     skill: string;
     agent: string;
     global?: '1';
-    source?: string;
 }
 
 interface SearchTelemetryData {
     event: 'search';
-    query: string;
     resultCount: string;
 }
 
@@ -39,7 +41,6 @@ interface UpdateTelemetryData {
 interface CommandTelemetryData {
     event: 'command';
     command: string;
-    args?: string;
 }
 
 type TelemetryData =
@@ -82,12 +83,25 @@ export function setVersion(version: string): void {
     cliVersion = version;
 }
 
+/** Print a one-time disclosure (stderr). Marker lives in ~/.skills. */
+function showNoticeOnce(): void {
+    try {
+        const dir = join(homedir(), '.skills');
+        const flag = join(dir, '.telemetry-notice');
+        if (existsSync(flag)) return;
+        mkdirSync(dir, { recursive: true });
+        writeFileSync(flag, '1');
+        console.error('agent-skills-cli sends anonymous usage counts (event name, skill name, agent, CLI version). No search text, paths, or IP is stored. Opt out: DISABLE_TELEMETRY=1 or DO_NOT_TRACK=1.');
+    } catch { /* never break the CLI */ }
+}
+
 /**
  * Track a telemetry event
- * Fire-and-forget - never blocks or throws
+ * Fire-and-forget - never blocks or throws. CI never sends.
  */
 export function track(data: TelemetryData): void {
-    if (!isEnabled()) return;
+    if (!isEnabled() || isCI()) return;
+    showNoticeOnce();
 
     try {
         const params = new URLSearchParams();
@@ -95,11 +109,6 @@ export function track(data: TelemetryData): void {
         // Add version
         if (cliVersion) {
             params.set('v', cliVersion);
-        }
-
-        // Add CI flag if running in CI
-        if (isCI()) {
-            params.set('ci', '1');
         }
 
         // Add event data
@@ -116,37 +125,14 @@ export function track(data: TelemetryData): void {
     }
 }
 
-/**
- * Track skill installation
- */
-export function trackInstall(skill: string, agent: string, isGlobal: boolean, source?: string): void {
-    track({
-        event: 'install',
-        skill,
-        agent,
-        global: isGlobal ? '1' : undefined,
-        source,
-    });
+export function trackInstall(skill: string, agent: string, isGlobal: boolean): void {
+    track({ event: 'install', skill, agent, global: isGlobal ? '1' : undefined });
 }
 
-/**
- * Track search query
- */
-export function trackSearch(query: string, resultCount: number): void {
-    track({
-        event: 'search',
-        query,
-        resultCount: String(resultCount),
-    });
+export function trackSearch(resultCount: number): void {
+    track({ event: 'search', resultCount: String(resultCount) });
 }
 
-/**
- * Track command usage
- */
-export function trackCommand(command: string, args?: string): void {
-    track({
-        event: 'command',
-        command,
-        args,
-    });
+export function trackCommand(command: string): void {
+    track({ event: 'command', command });
 }
