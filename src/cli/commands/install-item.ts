@@ -14,7 +14,6 @@ import type { ScanFinding } from '../../core/scanner-rules.js';
 import { addSkillToLock, createLockEntry } from '../../core/skill-lock.js';
 import { getSkillByScoped } from '../../core/skillsdb.js';
 import { hashText } from '../../core/integrity.js';
-import { trackCommand } from '../../core/telemetry.js';
 import type { McpInstallSpec } from '../../core/mcp-config.js';
 
 export function gateFindings(label: string, findings: ScanFinding[], skipAudit: boolean, log: (line: string) => void = console.log): boolean {
@@ -66,7 +65,6 @@ export async function maybeInstallItem(source: string, options: any): Promise<bo
     }
     spinner.succeed(`Found ${item.type} ${chalk.bold(item.name)}`);
     await installItem(item, options);
-    trackCommand('install');
     return true;
 }
 

@@ -25,7 +25,6 @@ import {
     cloneWithAuth,
     sanitizeUrl,
 } from '../../core/index.js';
-import { trackCommand } from '../../core/telemetry.js';
 import { hashText } from '../../core/integrity.js';
 import { maybeInstallItem, gateDir } from './install-item.js';
 import { mkdtemp as mkdtempM, mkdir as mkdirM, cp as cpM, rm as rmM, readFile as readFileM } from 'fs/promises';
@@ -527,7 +526,6 @@ export function registerInstallCommand(program: Command) {
                         await rm(tempDir, { recursive: true, force: true }).catch(() => { });
 
                         console.log(chalk.bold.green(`\n✨ Installed ${skillDirs.length} skill(s) from npm:${spec}\n`));
-                        trackCommand('install');
                     } catch (err: any) {
                         packSpinner.fail(`npm error: ${err.message}`);
                         await rm(tempDir, { recursive: true, force: true }).catch(() => { });
@@ -758,7 +756,6 @@ export function registerInstallCommand(program: Command) {
 
                     console.log(chalk.bold.green(`\n✨ Installed ${skillDirs.length} skill(s)\n`));
 
-                    trackCommand('install');
                     return;
                 }
 

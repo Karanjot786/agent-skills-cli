@@ -91,7 +91,7 @@ function showNoticeOnce(): void {
         if (existsSync(flag)) return;
         mkdirSync(dir, { recursive: true });
         writeFileSync(flag, '1');
-        console.error('agent-skills-cli sends anonymous usage counts (event name, skill name, agent, CLI version). No search text, paths, or IP is stored. Opt out: DISABLE_TELEMETRY=1 or DO_NOT_TRACK=1.');
+        console.error('agent-skills-cli sends an anonymous count per command run (command name, CLI version). No arguments, search text, paths, or IP are sent or stored. Opt out: DISABLE_TELEMETRY=1 or DO_NOT_TRACK=1.');
     } catch { /* never break the CLI */ }
 }
 

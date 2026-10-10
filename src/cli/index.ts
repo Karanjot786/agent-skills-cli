@@ -18,7 +18,7 @@ import {
     installSkill,
     fetchSkillsForCLI,
 } from '../core/index.js';
-import { setVersion } from '../core/telemetry.js';
+import { setVersion, trackCommand } from '../core/telemetry.js';
 import { AGENTS } from './agents.js';
 
 // ─── Modular command imports ────────────────────────────────────────────────
@@ -74,6 +74,8 @@ const program = new Command();
 
 // Initialize telemetry with CLI version
 setVersion('1.0.8');
+// One anonymous count per command run (command name only, never arguments).
+program.hook('preAction', (_cmd, action) => trackCommand(action.name()));
 
 // ─── Main interactive flow (`skills` with no subcommand) ────────────────────
 
