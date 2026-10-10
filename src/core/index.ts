@@ -198,6 +198,9 @@ export {
     runAudit,
     shouldFail,
     toSARIF,
+    scanContent,
+    scanInstallSpec,
+    SEVERITY_ORDER,
 } from './audit.js';
 
 export type {

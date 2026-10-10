@@ -58,7 +58,7 @@ export const SCANNER_RULES: ScannerRule[] = [
     {
         id: 'PI002',
         category: 'prompt-injection',
-        severity: 'critical',
+        severity: 'high', // role-setting ("You are now a ...") is normal in SKILL.md; critical would block legit installs
         title: 'System prompt override',
         description: 'Attempts to set a new system prompt or role',
         pattern: /you\s+are\s+now\s+(a|an|the)\s+/i,

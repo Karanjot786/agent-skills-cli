@@ -114,6 +114,50 @@ function scanFile(
     return findings;
 }
 
+export const SEVERITY_ORDER: Severity[] = ['critical', 'high', 'medium', 'low', 'info'];
+
+/**
+ * Scan one in-memory document. Used by install gating for downloaded files and by the
+ * website batch job (scripts/jobs/scan.mjs imports dist/core/audit.js).
+ */
+export function scanContent(text: string, file = 'SKILL.md', skipRules: string[] = []): ScanResult {
+    const skip = new Set(skipRules);
+    const rules = SCANNER_RULES.filter(r => !skip.has(r.id) && !skip.has(r.category));
+    const result = createEmptyScanResult();
+    result.filesScanned = 1;
+    result.findings = scanFile(text, file, rules);
+    for (const f of result.findings) {
+        result.summary[f.severity]++;
+        result.summary.total++;
+    }
+    return result;
+}
+
+const SHELLS = new Set(['sh', 'bash', 'zsh', 'fish', 'dash', 'ksh', 'cmd', 'cmd.exe', 'powershell', 'powershell.exe', 'pwsh', 'pwsh.exe']);
+const SECRET_FLAG = /^--?(api[-_]?key|token|secret|password|auth|access[-_]?token)$/i;
+const SECRET_FLAG_INLINE = /^--?(api[-_]?key|token|secret|password|auth|access[-_]?token)=(.+)$/i;
+const isLiteralSecret = (v: string | undefined) => !!v && v.length >= 8 && !v.startsWith('$') && !/^<.*>$/.test(v);
+
+/** Risk checks for an MCP install spec (registry install_json or a client config entry). */
+export function scanInstallSpec(spec: { command?: string; args?: string[]; url?: string }): ScanFinding[] {
+    const findings: ScanFinding[] = [];
+    const args = spec.args ?? [];
+    const cmdLine = [spec.command ?? '', ...args].join(' ').slice(0, 200);
+    const base = (spec.command ?? '').split(/[\\/]/).pop()!.toLowerCase();
+    if (SHELLS.has(base)) {
+        findings.push({ ruleId: 'MCP001', category: 'command-injection', severity: 'high', title: 'MCP server runs a shell', description: `command "${spec.command}" starts a shell; review what it runs`, file: 'install_json', line: 1, lineContent: cmdLine });
+    }
+    for (let i = 0; i < args.length; i++) {
+        const inline = args[i].match(SECRET_FLAG_INLINE);
+        if ((inline && isLiteralSecret(inline[2])) || (SECRET_FLAG.test(args[i]) && isLiteralSecret(args[i + 1]))) {
+            findings.push({ ruleId: 'MCP002', category: 'hardcoded-secrets', severity: 'high', title: 'Secret passed as a command-line argument', description: 'Credentials in args end up in config files and process lists; use env instead', file: 'install_json', line: 1, lineContent: args[i].replace(/=.*/, '=…') });
+        }
+    }
+    const rules = SCANNER_RULES.filter(r => r.category === 'hardcoded-secrets' || r.id === 'CI001' || r.id === 'CI002');
+    findings.push(...scanFile([...args, spec.url ?? ''].join('\n'), 'install_json', rules));
+    return findings;
+}
+
 /**
  * Run a full security audit on a directory or file
  */
