@@ -6,24 +6,8 @@ import { join } from 'path';
 
 const home = homedir();
 
-/** Where and how a client stores MCP servers (paths verified against vendor docs 2026-10-09). */
-export interface McpTarget {
-    /** Project-relative config file; omitted when the client has only a user-level file */
-    projectFile?: string;
-    /** Absolute user-level config file */
-    globalFile: string;
-    format: 'json' | 'toml';
-    /** Key holding the server map */
-    key: string;
-    /** Write "type": "stdio" | "http" (Claude Code, VS Code) */
-    typeField?: boolean;
-    /** Field for a remote URL (Windsurf: serverUrl, Gemini CLI: httpUrl) */
-    urlField?: string;
-    /** Field for remote headers (Codex: http_headers) */
-    headersField?: string;
-    /** Client reads only local stdio servers from this file (Claude Desktop) */
-    stdioOnly?: boolean;
-}
+import type { McpTarget } from '../core/mcp-config.js';
+export type { McpTarget };
 
 export interface AgentConfig {
     name: string;
