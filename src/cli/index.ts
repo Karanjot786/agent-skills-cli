@@ -7,6 +7,7 @@
  * and shared config lives in ./agents.ts.
  */
 
+import { createRequire } from 'node:module';
 import { Command } from 'commander';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
@@ -72,8 +73,11 @@ import { registerBenchCommand } from './commands/bench.js';
 
 const program = new Command();
 
+// Single source of truth: package.json. Path is relative to dist/cli/ and src/cli/ alike.
+const { version: CLI_VERSION } = createRequire(import.meta.url)('../../package.json') as { version: string };
+
 // Initialize telemetry with CLI version
-setVersion('1.0.8');
+setVersion(CLI_VERSION);
 // One anonymous count per command run (command name only, never arguments).
 program.hook('preAction', (_cmd, action) => trackCommand(action.name()));
 
@@ -251,7 +255,7 @@ async function showMainMenu() {
 program
     .name('skills')
     .description('Agent Skills CLI - Manage skills for Cursor, Claude Code, GitHub Copilot, OpenAI Codex')
-    .version('1.1.9')
+    .version(CLI_VERSION)
     .action(showMainMenu);
 
 // ─── Register all command modules ───────────────────────────────────────────
