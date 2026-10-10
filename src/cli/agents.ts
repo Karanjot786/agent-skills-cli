@@ -14,6 +14,8 @@ export interface AgentConfig {
     displayName: string;
     projectDir: string;
     globalDir: string;
+    /** Extra roots `skills list` searches, for legacy layouts. */
+    discoveryDirs?: string[];
     mcp?: McpTarget;
     agentsDir?: { project: string; global: string };
     plugins?: boolean;
@@ -75,6 +77,7 @@ export const AGENTS: Record<string, AgentConfig> = {
         displayName: 'Amp',
         projectDir: '.agents/skills',
         globalDir: `${home}/.config/agents/skills`,
+        discoveryDirs: [`${home}/.agents`],
     },
     'kilo': {
         name: 'kilo',
@@ -316,6 +319,18 @@ export function getInstallPath(agent: string, global: boolean): string {
     const config = AGENTS[agent];
     if (!config) return `.${agent}/skills`;
     return global ? config.globalDir : config.projectDir;
+}
+
+/** Every root `skills list` should search for one agent, including legacy aliases. */
+export function getAgentDiscoveryPaths(agent: string): string[] {
+    const config = AGENTS[agent];
+    if (!config) return [`.${agent}/skills`, `${home}/.${agent}/skills`];
+    return [...new Set([config.globalDir, config.projectDir, ...(config.discoveryDirs || [])])];
+}
+
+/** Discovery roots for every known agent, deduplicated. */
+export function getAllAgentDiscoveryPaths(): string[] {
+    return [...new Set(Object.keys(AGENTS).flatMap(agent => getAgentDiscoveryPaths(agent)))];
 }
 
 /** Claude Desktop reads MCP servers but has no skills dir, so it stays out of AGENTS. Stdio only (remote = Connectors). */
