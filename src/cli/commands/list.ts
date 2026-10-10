@@ -3,6 +3,8 @@
  */
 import { Command } from 'commander';
 import chalk from 'chalk';
+import { readFile } from 'fs/promises';
+import { join } from 'path';
 import { discoverSkills } from '../../core/index.js';
 
 export function registerListCommand(program: Command) {
@@ -18,6 +20,9 @@ export function registerListCommand(program: Command) {
             try {
                 const config = options.paths ? { searchPaths: options.paths } : {};
                 const skills = await discoverSkills(config);
+                // ponytail: ≈4 chars per token, SKILL.md only; shown in --json and --table.
+                const tokens = new Map<string, number>(await Promise.all(skills.map(async s =>
+                    [s.path, Math.ceil((await readFile(join(s.path, 'SKILL.md'), 'utf-8').catch(() => '')).length / 4)] as [string, number])));
 
                 if (skills.length === 0) {
                     if (options.json) {
@@ -38,9 +43,11 @@ export function registerListCommand(program: Command) {
                         skills: skills.map(s => ({
                             name: s.name,
                             description: s.description,
-                            path: s.path
+                            path: s.path,
+                            tokens: tokens.get(s.path) ?? 0
                         })),
-                        count: skills.length
+                        count: skills.length,
+                        totalTokens: [...tokens.values()].reduce((a, b) => a + b, 0)
                     }, null, 2));
                     return;
                 }
@@ -57,12 +64,12 @@ export function registerListCommand(program: Command) {
                     const maxDesc = Math.min(Math.max(...skills.map(s => (s.description || '').length), 11), 50);
 
                     console.log('');
-                    console.log(chalk.bold('Name'.padEnd(maxName + 2) + 'Description'));
+                    console.log(chalk.bold('Name'.padEnd(maxName + 2) + 'Tokens'.padEnd(8) + 'Description'));
                     console.log('─'.repeat(maxName + 2 + maxDesc));
 
                     for (const skill of skills) {
                         const desc = (skill.description || '').slice(0, 50);
-                        console.log(chalk.cyan(skill.name.padEnd(maxName + 2)) + chalk.gray(desc));
+                        console.log(chalk.cyan(skill.name.padEnd(maxName + 2)) + chalk.yellow(String(tokens.get(skill.path) ?? 0).padEnd(8)) + chalk.gray(desc));
                     }
                     console.log('');
                     return;
