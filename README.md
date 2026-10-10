@@ -295,7 +295,11 @@ Config is loaded from: project `.skillsrc` → home `~/.skillsrc` (first found w
 | `GIT_TOKEN` | Generic Git authentication (any host) |
 | `DISABLE_TELEMETRY` / `DO_NOT_TRACK` | Opt out of anonymous telemetry |
 
-Telemetry is automatically disabled in CI environments.
+### Telemetry
+
+The CLI sends anonymous usage counts to `https://www.agentskills.in/api/telemetry`: event name (`install`, `search`, `check`, `update`, `command`), skill name, agent name and CLI version. It never sends search text, command arguments, file paths or private repo URLs. The server stores only daily counters, with no IP address. The first run prints this notice once.
+
+Opt out with `DISABLE_TELEMETRY=1` or `DO_NOT_TRACK=1`. It is automatically off in CI environments.
 
 ---
 

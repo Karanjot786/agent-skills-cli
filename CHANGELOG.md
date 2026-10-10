@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2026-10-09
+
+### Bug Fixes
+- `submit-repo` sends only `owner/repo`; the server now fetches from GitHub with a token and reports rate limits correctly (fixes #29, #33, #34, #37)
+- Telemetry posts to the live `www` endpoint; search text and command arguments are no longer sent
+- Clone URLs no longer get a forced `.git` suffix, so Azure DevOps and CodeCommit work (PR #31, thanks @nicostoppel)
+- `skills list` finds installed skills across discovery paths (PR #17, fixes #15, thanks @KirioXX)
+
+### Privacy
+- First-run telemetry notice and README disclosure; opt out with `DISABLE_TELEMETRY` or `DO_NOT_TRACK`
+
 ## [1.1.9] - 2026-05-17
 
 ### 🐛 Bug Fixes
