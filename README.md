@@ -159,6 +159,31 @@ skills install @github/awesome-copilot -a cursor,claude -y
 skills install @owner/repo --all -y        # All skills to all agents
 ```
 
+### MCP Servers, Subagents and Plugins
+
+```bash
+skills install github--github-mcp-server            # Bare slug: auto-detects skill, MCP server, subagent or plugin
+skills install acme--weather --type mcp -a cursor   # Force a type (skill, mcp, agent, plugin)
+skills install acme--weather -e API_KEY=xxx         # Env var for an MCP server (repeatable; prompts if omitted)
+skills install acme--reviewer --type agent          # Subagent into .claude/agents/
+skills remove acme--weather                         # Removes the MCP entry from each client config
+```
+
+MCP config files are merged, never overwritten: other servers and keys are kept, a `.bak` is written first, and a config with comments (JSONC) is refused rather than rewritten. Quit the client (for example Claude Code) before a global (`-g`) install.
+
+### Install-Time Security Scan
+
+Every skill and subagent is scanned before it is copied. Critical findings block the install; high findings print a warning. `--skip-audit` installs anyway. Findings are automated signals, not a verdict: read a skill before you run it.
+
+```bash
+skills audit                      # Audit installed skills against agentskills.in advisories
+skills audit ./my-skill           # Audit one folder
+skills audit --fail-on high       # Exit 1 at high or above (for CI)
+skills audit --json --offline     # JSON output, no advisory download
+skills audit --no-global          # Project-level agent directories only
+skills list --table               # Includes a Tokens column (estimated context cost)
+```
+
 ### Git URL Install (`skills add`)
 
 ```bash
