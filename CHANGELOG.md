@@ -2,11 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.2.0] - 2026-10-09
+## [1.2.0] - 2026-10-11
+
+### Security
+- Git, `tar` and browser-open commands no longer run through a shell. A repo URL, branch or commit taken from a lockfile, the marketplace or the command line could previously run arbitrary commands during `install`, `update`, `frozen`, `sandbox`, `preview` and the interactive installers. URLs are now passed after `--`, so a value like `--upload-pack=...` cannot become a git option, and branch and commit names are validated.
+- `npm:` installs reject package specs and registry URLs that contain shell characters.
+- The install-time security scan now also covers `update` (before the installed copy is replaced), `frozen`, `install-url`, installs from the lockfile and the interactive installers.
 
 ### Features
 - **MCP servers, subagents and plugins** — `skills install <slug>` auto-detects the type; force one with `--type mcp|agent|plugin`. MCP config files are merged, never overwritten, and a `.bak` is written first.
-- **Install-time security scan** — `skills install`, `skills add` and `skills search` scan every skill and subagent before copying it. Critical findings block the install; `--skip-audit` overrides on `install`.
+- **Install-time security scan** — every command that installs skills from a source (`install`, `add`, `search`, `update`, `frozen`, `install-url` and the interactive installers) scans each skill and subagent before copying it. Critical findings block the install; `--skip-audit` overrides on `install`.
 - **`skills audit`** — audits installed skills against agentskills.in advisories. Supports `--fail-on`, `--json` and `--offline` for CI.
 - **Token cost in `skills list`** — `--table` and `--json` include an estimated token column.
 
@@ -19,6 +24,11 @@ All notable changes to this project will be documented in this file.
 - Bare slug installs check skills first, using an exact name match
 - `remove` deletes MCP, subagent and plugin items by type, never a whole agent skills directory or a local source folder; `update` skips non-skill items
 - Replaced subagent files are backed up before overwrite; symlinked MCP configs are kept
+- `skills preview` opens the agentskills.in page instead of a dead domain
+- Help text no longer names SkillsMP as the marketplace or shows outdated skill counts
+- `~/.antigravity/skills` is searched by default again
+- `npm:` installs work when the temp directory path contains spaces
+- The npm package no longer ships stale build output (old compiled tests and a removed module)
 
 ### Privacy
 - First-run telemetry notice and README disclosure; opt out with `DISABLE_TELEMETRY` or `DO_NOT_TRACK`

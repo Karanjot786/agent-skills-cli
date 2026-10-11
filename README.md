@@ -16,7 +16,7 @@ The marketplace indexes over 222,000 skills from more than 21,000 authors.
 
 - **Every source.** Marketplace, GitHub, private Git (SSH or token), and npm registries.
 - **45 agents.** One install can write to every agent you select, or to all of them with `--all`.
-- **Scanned before install.** `skills install` and `skills search` check every skill for security issues before copying it.
+- **Scanned before install.** Every command that installs skills checks them for security issues before copying them.
 - **Built for teams.** Project config with `.skillsrc`, lockfile installs with `skills frozen`, and quality scoring.
 
 ## Contents
@@ -150,7 +150,7 @@ MCP config files are merged, never overwritten. Other servers and keys are kept,
 
 ## Security
 
-`skills install` (and its alias `skills add`) and `skills search` scan every skill and subagent before copying it. Critical findings block the install, and high findings print a warning. The scan is an automated signal, not a verdict, so read a skill before you run it.
+Every command that installs skills from a source (`install`, `add`, `search`, `update`, `frozen`, `install-url` and the interactive installers) scans each skill and subagent before copying it. Critical findings block the install, and high findings print a warning. The scan is an automated signal, not a verdict, so read a skill before you run it.
 
 ```bash
 skills audit                          # Audit installed skills against agentskills.in advisories
