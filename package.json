@@ -15,7 +15,8 @@
     "dev": "tsc --watch",
     "start": "node dist/cli/index.js",
     "test": "vitest",
-    "prepublishOnly": "npm run build"
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "prepublishOnly": "npm run clean && npm run build"
   },
   "keywords": [
     "agent-skills",
