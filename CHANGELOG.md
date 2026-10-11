@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 - **MCP servers, subagents and plugins** — `skills install <slug>` auto-detects the type; force one with `--type mcp|agent|plugin`. MCP config files are merged, never overwritten, and a `.bak` is written first.
-- **Install-time security scan** — every skill and subagent is scanned before it is copied. Critical findings block the install; `--skip-audit` overrides.
+- **Install-time security scan** — `skills install`, `skills add` and `skills search` scan every skill and subagent before copying it. Critical findings block the install; `--skip-audit` overrides on `install`.
 - **`skills audit`** — audits installed skills against agentskills.in advisories. Supports `--fail-on`, `--json` and `--offline` for CI.
 - **Token cost in `skills list`** — `--table` and `--json` include an estimated token column.
 
