@@ -5,19 +5,11 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
 import inquirer from 'inquirer';
-import { fetchSkillsForCLI, installFromGitHubUrl, searchSkills } from '../../core/index.js';
+import { fetchSkillsForCLI, searchSkills } from '../../core/index.js';
 import { AGENTS, AgentConfig } from '../agents.js';
 import { fzfSearch } from '../fzf-search.js';
-
-/** Install a skill from its database record into a target directory */
-async function installSkillFromDatabase(skill: any, targetDir: string): Promise<string> {
-    const githubUrl = skill.github_url || skill.githubUrl;
-    if (githubUrl) {
-        const result = await installFromGitHubUrl(githubUrl, targetDir);
-        return result.path;
-    }
-    throw new Error(`No GitHub URL found for skill ${skill.name || skill.scopedName || 'unknown'}`);
-}
+// Same staged download + security scan as `skills install`.
+import { installSkillFromDatabase } from './install.js';
 
 export function registerSearchInstallCommand(program: Command) {
     program
@@ -177,20 +169,12 @@ export function registerSearchInstallCommand(program: Command) {
                         const githubUrl = skill.github_url || skill.githubUrl;
                         const rawUrl = skill.raw_url || skill.rawUrl;
 
-                        if (githubUrl || rawUrl) {
-                            const url = githubUrl || rawUrl;
-                            for (const agent of agents) {
-                                const config = AGENTS[agent];
-                                const targetDir = isGlobal ? config.globalDir : config.projectDir;
-                                const result = await installFromGitHubUrl(url, targetDir);
-                                installDir = result.path;
-                            }
-                        } else {
-                            for (const agent of agents) {
-                                const config = AGENTS[agent];
-                                const targetDir = isGlobal ? config.globalDir : config.projectDir;
-                                installDir = await installSkillFromDatabase(skill, targetDir);
-                            }
+                        const url = githubUrl || rawUrl;
+                        if (!url) throw new Error(`No GitHub URL found for skill ${skillName}`);
+                        for (const agent of agents) {
+                            const config = AGENTS[agent];
+                            const targetDir = isGlobal ? config.globalDir : config.projectDir;
+                            installDir = await installSkillFromDatabase({ ...skill, github_url: url }, targetDir);
                         }
 
                         // Add to lock file

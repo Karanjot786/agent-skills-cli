@@ -34,7 +34,7 @@ import { join as joinM, basename as basenameM } from 'path';
 
 /** Install a marketplace skill: download to staging, scan, then copy into targetDir. */
 // ponytail: scans once per target agent (no verdict cache); add one if multi-agent installs feel slow.
-async function installSkillFromDatabase(skill: any, targetDir: string, skipAudit = false): Promise<string> {
+export async function installSkillFromDatabase(skill: any, targetDir: string, skipAudit = false): Promise<string> {
     const githubUrl = skill.github_url || skill.githubUrl;
     if (!githubUrl) throw new Error(`No GitHub URL found for skill ${skill.name}`);
     const staging = await mkdtempM(joinM(tmpdir(), 'skill-db-'));
