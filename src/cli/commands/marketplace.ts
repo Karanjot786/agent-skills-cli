@@ -125,14 +125,14 @@ export function registerMarketplaceCommands(program: Command) {
     // MARKETPLACE COMMANDS
     // ============================================
 
-    // Market list - list skills from SkillsMP (40k+ skills)
+    // Market list - list skills from the agentskills.in marketplace
     program
         .command('market-list')
         .alias('ml')
-        .description('List skills from SkillsMP marketplace (40k+ skills)')
+        .description('List skills from the agentskills.in marketplace')
         .option('-l, --limit <number>', 'Number of skills to show', '50')
         .option('-p, --page <number>', 'Page number', '1')
-        .option('--legacy', 'Use legacy GitHub sources instead of SkillsMP')
+        .option('--legacy', 'Use legacy GitHub sources instead of the marketplace')
         .action(async (options) => {
             try {
                 if (options.legacy) {
@@ -271,10 +271,8 @@ export function registerMarketplaceCommands(program: Command) {
         .description('Install a skill (alias for: skills install)')
         .action(async (name) => {
             console.log(chalk.gray('Tip: Use `skills install <id-or-name>` directly\n'));
-            const { execSync } = await import('child_process');
-            try {
-                execSync(`"${process.argv[0]}" "${process.argv[1]}" install "${name}"`, { stdio: 'inherit' });
-            } catch { }
+            const { spawnSync } = await import('child_process');
+            spawnSync(process.argv[0], [process.argv[1], 'install', name], { stdio: 'inherit' });
         });
 
     // Install from URL
@@ -312,10 +310,12 @@ export function registerMarketplaceCommands(program: Command) {
                 const homedir = (await import('os')).homedir();
                 const skillsDir = `${homedir}/.antigravity/skills`;
 
-                const installed = await installFromGitHubUrl(githubUrl, skillsDir);
+                // Staged download + security scan, same as `skills install`.
+                const { installSkillFromDatabase } = await import('./install.js');
+                const installedPath = await installSkillFromDatabase({ github_url: githubUrl, name: githubUrl }, skillsDir);
 
-                console.log(chalk.green(`✓ Successfully installed: ${installed.name}`));
-                console.log(chalk.gray(`  Path: ${installed.path}`));
+                console.log(chalk.green(`✓ Successfully installed: ${installedPath.split(/[\\/]/).pop()}`));
+                console.log(chalk.gray(`  Path: ${installedPath}`));
                 console.log('');
             } catch (error: any) {
                 console.error(chalk.red('Error installing skill:'), error.message || error);
@@ -379,12 +379,10 @@ export function registerMarketplaceCommands(program: Command) {
         .description('List registered marketplace sources')
         .action(async () => {
             try {
-                // Show SkillsMP as primary
+                // Show agentskills.in as primary
                 console.log(chalk.bold('\n🌐 Primary Marketplace:\n'));
-                console.log(chalk.cyan(`  SkillsMP`) + chalk.green(' ✓'));
-                console.log(chalk.gray(`    URL: https://skillsmp.com`));
-                console.log(chalk.gray(`    Skills: 40,000+`));
-                console.log(chalk.gray(`    The largest Agent Skills marketplace`));
+                console.log(chalk.cyan(`  agentskills.in`) + chalk.green(' ✓'));
+                console.log(chalk.gray(`    URL: https://www.agentskills.in`));
                 console.log('');
 
                 // Show legacy sources

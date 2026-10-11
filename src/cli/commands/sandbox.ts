@@ -32,9 +32,7 @@ export function registerSandboxCommand(program: Command) {
                     // Try to clone from GitHub
                     const spinner = ora('Fetching skill from remote...').start();
                     try {
-                        const { exec } = await import('child_process');
-                        const { promisify } = await import('util');
-                        const execAsync = promisify(exec);
+                        const { gitClone } = await import('../../core/safe-exec.js');
 
                         tempDir = await mkdtemp(join(tmpdir(), 'skills-sandbox-'));
                         isTemp = true;
@@ -44,7 +42,7 @@ export function registerSandboxCommand(program: Command) {
                             gitUrl = `https://github.com/${source.replace(/^@/, '')}`;
                         }
 
-                        await execAsync(`git clone --depth 1 ${gitUrl} ${tempDir}`, { timeout: 30000 });
+                        await gitClone(gitUrl, tempDir, { depth: 1, timeout: 30000 });
 
                         // Find SKILL.md
                         if (existsSync(join(tempDir, 'SKILL.md'))) {

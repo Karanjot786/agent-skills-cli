@@ -294,9 +294,8 @@ export function registerUpdateCommand(program: Command) {
                 const { existsSync } = await import('fs');
                 const { join } = await import('path');
                 const { tmpdir } = await import('os');
-                const { exec } = await import('child_process');
-                const { promisify } = await import('util');
-                const execAsync = promisify(exec);
+                const { git, gitClone } = await import('../../core/safe-exec.js');
+                const { gateDir } = await import('./install-item.js');
 
                 const lock = await readLock();
                 let skillsToUpdate = Object.values(lock.skills);
@@ -377,7 +376,15 @@ export function registerUpdateCommand(program: Command) {
                         }
 
                         // Clone the repo
-                        await execAsync(`git clone --depth 1 ${skill.source} .`, { cwd: tempDir });
+                        await gitClone(skill.source, '.', { depth: 1, cwd: tempDir });
+
+                        // Scan before touching the installed copy, so a blocked update keeps the old version.
+                        if (!(await gateDir(skill.scopedName, tempDir, false))) {
+                            await rm(tempDir, { recursive: true, force: true }).catch(() => { });
+                            spinner.fail(`${skill.scopedName}: blocked by security scan, kept the installed version`);
+                            failCount++;
+                            continue;
+                        }
 
                         // Update each agent directory
                         for (const agent of skill.agents) {
@@ -402,7 +409,7 @@ export function registerUpdateCommand(program: Command) {
                         // Get latest commit SHA for version tracking
                         let version: string | undefined;
                         try {
-                            const { stdout } = await execAsync('git rev-parse HEAD', { cwd: tempDir });
+                            const { stdout } = await git(['rev-parse', 'HEAD'], { cwd: tempDir });
                             version = stdout.trim();
                         } catch { }
 

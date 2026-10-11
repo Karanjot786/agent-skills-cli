@@ -419,19 +419,17 @@ export function registerInteractiveCommands(program: Command) {
         .action(async (skillName, options) => {
             try {
                 const clean = skillName.replace(/^@/, '');
-                const url = `https://skills.karanjot.dev/marketplace/${clean}`;
+                const url = `https://www.agentskills.in/marketplace/@${clean}`;
 
                 if (options.urlOnly) {
                     console.log(url);
                 } else {
-                    const { exec } = await import('child_process');
-                    const { promisify } = await import('util');
-                    const execAsync = promisify(exec);
+                    const { execFileAsync } = await import('../../core/safe-exec.js');
+                    // No shell: `start` would go through cmd.exe, which interprets & in URLs.
+                    const [cmd, args] = process.platform === 'darwin' ? ['open', [url]] :
+                        process.platform === 'win32' ? ['rundll32', ['url.dll,FileProtocolHandler', url]] : ['xdg-open', [url]];
 
-                    const cmd = process.platform === 'darwin' ? 'open' :
-                        process.platform === 'win32' ? 'start' : 'xdg-open';
-
-                    await execAsync(`${cmd} "${url}"`);
+                    await execFileAsync(cmd as string, args as string[]);
                     console.log(chalk.green(`✓ Opened: ${url}`));
                 }
             } catch (error) {

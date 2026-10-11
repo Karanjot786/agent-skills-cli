@@ -169,9 +169,6 @@ async function showMainMenu() {
     const { mkdir, cp, rm } = await import('fs/promises');
     const { join } = await import('path');
     const { tmpdir } = await import('os');
-    const { exec } = await import('child_process');
-    const { promisify } = await import('util');
-    const execAsync = promisify(exec);
 
     async function installSkillToPlatforms(skill: any): Promise<{ success: boolean; name: string; scopedName?: string; error?: string }> {
         try {
@@ -200,7 +197,14 @@ async function showMainMenu() {
             await mkdir(tempDir, { recursive: true });
 
             try {
-                await execAsync(`git clone --depth 1 --branch ${branch} https://github.com/${owner}/${repo}.git .`, { cwd: tempDir });
+                const { gitClone } = await import('../core/safe-exec.js');
+                const { gateDir } = await import('./commands/install-item.js');
+                await gitClone(`https://github.com/${owner}/${repo}.git`, '.', { depth: 1, branch, cwd: tempDir });
+
+                const sourceDir = skillPath ? join(tempDir, skillPath) : tempDir;
+                if (!(await gateDir(scopedName || dbSkill.name, sourceDir, false))) {
+                    return { success: false, name: dbSkill.name, error: 'blocked by security scan' };
+                }
 
                 for (const platform of selectedAgents) {
                     const agentConfig = AGENTS[platform];
@@ -209,8 +213,6 @@ async function showMainMenu() {
                     const targetDir = agentConfig.projectDir;
                     const skillDir = join(process.cwd(), targetDir, dbSkill.name);
                     await mkdir(skillDir, { recursive: true });
-
-                    const sourceDir = skillPath ? join(tempDir, skillPath) : tempDir;
                     await cp(sourceDir, skillDir, { recursive: true });
                 }
 

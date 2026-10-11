@@ -9,8 +9,9 @@
  * - Interactive token prompt (fallback)
  */
 
-import { exec } from 'child_process';
+import { exec, execFile } from 'child_process';
 import { promisify } from 'util';
+import { gitClone } from './safe-exec.js';
 import { existsSync } from 'fs';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
@@ -112,16 +113,14 @@ async function resolveFromCredentialHelper(hostname: string): Promise<string | u
         if (!helper.trim()) return undefined;
 
         // Try to get credentials using a script that writes to stdin and reads stdout
-        const { stdout } = await execAsync(
-            `printf 'protocol=https\nhost=${hostname}\n\n' | git credential fill`,
-            {
+        // Feed the request on stdin; no shell, so the hostname is never interpreted.
+        const stdout = await new Promise<string>((resolve, reject) => {
+            const child = execFile('git', ['credential', 'fill'], {
                 timeout: 3000,
-                env: {
-                    ...process.env,
-                    GIT_TERMINAL_PROMPT: '0',
-                },
-            }
-        );
+                env: { ...process.env, GIT_TERMINAL_PROMPT: '0' },
+            }, (err, out) => (err ? reject(err) : resolve(out)));
+            child.stdin?.end(`protocol=https\nhost=${hostname}\n\n`);
+        });
 
         const passwordMatch = stdout.match(/password=(.+)/);
         if (passwordMatch) {
@@ -315,14 +314,10 @@ export async function cloneWithAuth(
         cloneUrl = normalizeGitUrl(url);
     }
 
-    // Build clone command
-    const args = ['git', 'clone'];
-    if (depth) args.push('--depth', String(depth));
-    if (ref) args.push('--branch', ref);
-    args.push(cloneUrl, '.');
-
     try {
-        await execAsync(args.join(' '), {
+        await gitClone(cloneUrl, '.', {
+            depth,
+            branch: ref,
             cwd: destDir,
             timeout: 60000,  // 60s timeout
             env: {

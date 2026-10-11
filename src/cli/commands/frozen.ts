@@ -22,9 +22,8 @@ export function registerFrozenCommand(program: Command) {
                 const skillDirOf = (e: { canonicalPath: string; name: string }) =>
                     basename(e.canonicalPath) === e.name ? e.canonicalPath : join(e.canonicalPath, e.name);
                 const { readLock } = await import('../../core/skill-lock.js');
-                const { exec } = await import('child_process');
-                const { promisify } = await import('util');
-                const execAsync = promisify(exec);
+                const { assertRef, git, gitClone } = await import('../../core/safe-exec.js');
+                const { gateDir } = await import('./install-item.js');
 
                 const lock = await readLock();
                 const skills = Object.values(lock.skills);
@@ -60,43 +59,37 @@ export function registerFrozenCommand(program: Command) {
                                 const tmpDir = join(homedir(), '.antigravity', 'tmp', `frozen-${Date.now()}`);
                                 await mkdir(tmpDir, { recursive: true });
 
-                                let cloneCmd = `git clone --depth 1`;
-                                if (entry.version) {
-                                    // Try to checkout specific commit
-                                    cloneCmd = `git clone`;
-                                }
-                                cloneCmd += ` ${entry.source} ${tmpDir}`;
-
                                 try {
-                                    await execAsync(cloneCmd, { timeout: 30000 });
+                                    // Full clone when a commit is pinned, so the checkout below can find it.
+                                    await gitClone(entry.source, tmpDir, { depth: entry.version ? undefined : 1, timeout: 30000 });
 
                                     if (entry.version) {
                                         try {
-                                            await execAsync(`git checkout ${entry.version}`, { cwd: tmpDir });
+                                            await git(['checkout', assertRef(entry.version)], { cwd: tmpDir });
                                         } catch {
                                             // Version might not be a valid ref, continue
                                         }
                                     }
 
+                                    // Find SKILL.md in cloned repo: the root, or the first subdirectory that has one
+                                    let src: string | undefined;
+                                    if (existsSync(join(tmpDir, 'SKILL.md'))) {
+                                        src = tmpDir;
+                                    } else {
+                                        const { readdir } = await import('fs/promises');
+                                        const sub = (await readdir(tmpDir, { withFileTypes: true }))
+                                            .find(e => e.isDirectory() && existsSync(join(tmpDir, e.name, 'SKILL.md')));
+                                        if (sub) src = join(tmpDir, sub.name);
+                                    }
+
+                                    if (src && !(await gateDir(entry.name, src, false))) {
+                                        throw new Error('blocked by security scan');
+                                    }
+
                                     // Copy to canonical path
                                     const destDir = skillDirOf(entry);
                                     await mkdir(destDir, { recursive: true });
-
-                                    // Find SKILL.md in cloned repo
-                                    const skillMd = join(tmpDir, 'SKILL.md');
-                                    if (existsSync(skillMd)) {
-                                        await cp(tmpDir, destDir, { recursive: true });
-                                    } else {
-                                        // Look for skill subdirectory
-                                        const { readdir } = await import('fs/promises');
-                                        const entries = await readdir(tmpDir, { withFileTypes: true });
-                                        for (const e of entries) {
-                                            if (e.isDirectory() && existsSync(join(tmpDir, e.name, 'SKILL.md'))) {
-                                                await cp(join(tmpDir, e.name), destDir, { recursive: true });
-                                                break;
-                                            }
-                                        }
-                                    }
+                                    if (src) await cp(src, destDir, { recursive: true });
 
                                     // Cleanup
                                     await rm(tmpDir, { recursive: true, force: true }).catch(() => { });

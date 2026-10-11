@@ -7,8 +7,6 @@ import { mkdir, writeFile, readFile, rm, cp } from 'fs/promises';
 import { existsSync } from 'fs';
 import { join, basename } from 'path';
 import { tmpdir } from 'os';
-import { exec } from 'child_process';
-import { promisify } from 'util';
 import type {
     MarketplaceSource,
     MarketplaceSkill,
@@ -18,8 +16,9 @@ import type {
 import { DEFAULT_MARKETPLACES } from '../types/marketplace.js';
 import { loadSkillMetadata } from './loader.js';
 import { validateMetadata } from './validator.js';
+import { runAudit } from './audit.js';
+import { assertRef, git } from './safe-exec.js';
 
-const execAsync = promisify(exec);
 
 /**
  * Default config file location
@@ -341,6 +340,13 @@ export async function installSkill(
     // Download skill from GitHub
     await downloadSkill(skill, installPath);
 
+    // Same rule as `skills install`: critical security findings block the install.
+    const critical = (await runAudit(installPath)).findings.filter(f => f.severity === 'critical');
+    if (critical.length) {
+        await rm(installPath, { recursive: true, force: true });
+        throw new Error(`blocked by security scan: ${critical.map(f => `[${f.ruleId}] ${f.title}`).join(', ')}`);
+    }
+
     // Validate the installed skill
     const metadata = await loadSkillMetadata(join(installPath, 'SKILL.md'));
     if (metadata) {
@@ -387,17 +393,17 @@ async function downloadSkill(
         const repoUrl = `https://github.com/${source.owner}/${source.repo}.git`;
 
         // Initialize sparse checkout
-        await execAsync(`git init`, { cwd: tempDir });
-        await execAsync(`git remote add origin ${repoUrl}`, { cwd: tempDir });
-        await execAsync(`git config core.sparseCheckout true`, { cwd: tempDir });
+        await git(['init'], { cwd: tempDir });
+        await git(['remote', 'add', 'origin', repoUrl], { cwd: tempDir });
+        await git(['config', 'core.sparseCheckout', 'true'], { cwd: tempDir });
 
         // Set sparse checkout path
         const sparseFile = join(tempDir, '.git', 'info', 'sparse-checkout');
         await writeFile(sparseFile, skill.path + '\n');
 
         // Fetch and checkout
-        await execAsync(`git fetch --depth=1 origin ${branch}`, { cwd: tempDir });
-        await execAsync(`git checkout ${branch}`, { cwd: tempDir });
+        await git(['fetch', '--depth=1', 'origin', assertRef(branch)], { cwd: tempDir });
+        await git(['checkout', assertRef(branch)], { cwd: tempDir });
 
         // Copy skill to destination
         const skillSourcePath = join(tempDir, skill.path);

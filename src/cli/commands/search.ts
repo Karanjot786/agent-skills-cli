@@ -1,5 +1,5 @@
 /**
- * `skills search` command — Search and install skills from marketplace (67K+ skills)
+ * `skills search` command — Search and install skills from the marketplace
  */
 import { Command } from 'commander';
 import chalk from 'chalk';
@@ -15,7 +15,7 @@ export function registerSearchInstallCommand(program: Command) {
     program
         .command('search [query...]')
         .alias('s')
-        .description('Search and install skills from marketplace (67K+ skills)')
+        .description('Search and install skills from the marketplace')
         .option('-l, --limit <n>', 'Maximum results to show', '20')
         .option('-s, --sort <by>', 'Sort by: stars, recent, name', 'stars')
         .option('-i, --interactive', 'Launch interactive FZF-style search')

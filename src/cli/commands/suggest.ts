@@ -93,7 +93,7 @@ async function suggestCommand(options: SuggestOptions): Promise<void> {
     }
 
     // Step 2: Fetch skills from DB
-    const spinner2 = ora('Searching 67K+ skills for matches...').start();
+    const spinner2 = ora('Searching the marketplace for matches...').start();
 
     // Build multiple search queries from keywords
     const searchQueries = keywords.slice(0, 5); // Top 5 keywords

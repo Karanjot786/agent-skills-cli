@@ -27,6 +27,7 @@ import {
 } from '../../core/index.js';
 import { hashText } from '../../core/integrity.js';
 import { maybeInstallItem, gateDir } from './install-item.js';
+import { execFileAsync, gitClone } from '../../core/safe-exec.js';
 import { mkdtemp as mkdtempM, mkdir as mkdirM, cp as cpM, rm as rmM, readFile as readFileM } from 'fs/promises';
 import { existsSync as existsSyncM } from 'fs';
 import { tmpdir } from 'os';
@@ -187,7 +188,11 @@ export function registerInstallCommand(program: Command) {
                                 if (lockSkill.sourceType === 'github' || lockSkill.sourceType === 'gitlab') {
                                     const tempDir = join(tmpdir(), `skill-install-${Date.now()}`);
                                     await mkdir(tempDir, { recursive: true });
-                                    await execAsync(`git clone --depth 1 ${lockSkill.source} .`, { cwd: tempDir });
+                                    await gitClone(lockSkill.source, '.', { depth: 1, cwd: tempDir });
+                                    if (!(await gateDir(lockSkill.name, tempDir, !!options.skipAudit))) {
+                                        await rm(tempDir, { recursive: true, force: true }).catch(() => { });
+                                        continue;
+                                    }
 
                                     const skillDir = join(targetDir, lockSkill.name);
                                     await mkdir(skillDir, { recursive: true });
@@ -446,9 +451,16 @@ export function registerInstallCommand(program: Command) {
 
                     const packSpinner = ora('Downloading npm package...').start();
                     try {
+                        // npm is a .cmd shim on Windows, so this needs a shell: allow only package-spec and URL characters.
+                        if (!/^(@[a-z0-9][\w.-]*\/)?[a-z0-9][\w.-]*(@[\w.^~*-]+)?$/i.test(spec)) {
+                            throw new Error(`Invalid npm package spec: ${spec}`);
+                        }
+                        if (registry && !/^https?:\/\/[^\s"'`$;&|<>()\\]+$/i.test(registry)) {
+                            throw new Error(`Invalid registry URL: ${registry}`);
+                        }
                         const packCmd = registry
-                            ? `npm pack ${spec} --pack-destination ${tempDir} --registry ${registry}`
-                            : `npm pack ${spec} --pack-destination ${tempDir}`;
+                            ? `npm pack ${spec} --pack-destination "${tempDir}" --registry ${registry}`
+                            : `npm pack ${spec} --pack-destination "${tempDir}"`;
                         const { stdout: packOutput } = await execAsync(packCmd, { timeout: 60000 });
 
                         // npm pack outputs the tarball filename
@@ -456,7 +468,7 @@ export function registerInstallCommand(program: Command) {
                         const tarballPath = join(tempDir, tarballName);
 
                         // Extract tarball
-                        await execAsync(`tar xzf "${tarballPath}" -C "${tempDir}"`, { timeout: 30000 });
+                        await execFileAsync('tar', ['xzf', tarballPath, '-C', tempDir], { timeout: 30000 });
                         packSpinner.succeed('Downloaded');
 
                         // npm pack extracts to a "package" directory
