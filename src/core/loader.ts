@@ -30,6 +30,7 @@ export function getDefaultSkillPaths(
 		join(cwd, ".skills"),
 		// Antigravity compatibility / legacy locations
 		join(home, ".gemini", "antigravity", "skills"),
+		join(home, ".antigravity", "skills"),
 		".agent/skills",
 		".antigravity/skills",
 		// Local development skills
