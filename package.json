@@ -10,7 +10,7 @@
     "agent-skills": "./dist/cli/index.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node -e \"require('fs').chmodSync('dist/cli/index.js',0o755)\"",
     "build:fast": "tsup src/cli/index.ts src/index.ts --format esm --dts --clean --outDir dist",
     "dev": "tsc --watch",
     "start": "node dist/cli/index.js",
