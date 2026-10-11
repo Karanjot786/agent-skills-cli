@@ -280,6 +280,8 @@ skills submit-repo vercel-labs/agent-skills   # Skills appear on marketplace
 
 **+32 more agents:** Amp, Kilo, Roo, Goose, CodeBuddy, Continue, Crush, Clawdbot, Droid, Kiro, MCPJam, Mux, OpenHands, Pi, Qoder, Qwen Code, Trae, Zencoder, Neovate, Command Code, Ara, Aide, Alex, BB, CodeStory, Helix AI, Meekia, Pear AI, Adal, Pochi, Sourcegraph Cody, Void AI
 
+> **Discovery note:** `skills list` searches both canonical install storage (`~/.skills/`, `./.skills/`) and agent-specific skill directories, so skills installed by `skills install` remain discoverable even before syncing.
+
 ---
 
 ## ⚙️ Configuration (`.skillsrc`)
