@@ -1,292 +1,240 @@
-# Agent Skills CLI 🚀
+# Agent Skills CLI
 
-> **One CLI. 175,000+ skills. 45 AI agents.**
+Install, update and manage AI agent skills across 45 coding agents from one command line.
 
 [![npm version](https://img.shields.io/npm/v/agent-skills-cli)](https://www.npmjs.com/package/agent-skills-cli)
 [![npm downloads](https://img.shields.io/npm/dm/agent-skills-cli)](https://www.npmjs.com/package/agent-skills-cli)
 [![license](https://img.shields.io/npm/l/agent-skills-cli)](LICENSE)
-[![Website](https://img.shields.io/badge/website-agentskills.in-blue?style=flat)](https://agentskills.in)
-[![GitHub Stars](https://img.shields.io/github/stars/Karanjot786/agent-skills-cli?style=social)](https://github.com/Karanjot786/agent-skills-cli)
+[![node](https://img.shields.io/node/v/agent-skills-cli)](https://www.npmjs.com/package/agent-skills-cli)
+[![GitHub stars](https://img.shields.io/github/stars/Karanjot786/agent-skills-cli?style=social)](https://github.com/Karanjot786/agent-skills-cli)
 
-Install skills from the world's largest marketplace and sync them to **45 AI agents** including Cursor, Claude Code, GitHub Copilot, Windsurf, Cline, Gemini CLI, Zed, and more — all with a single command.
+`skills` finds skills in the [agentskills.in](https://agentskills.in) marketplace, in GitHub and private Git repositories, and in npm packages. It installs them into the skill directory of each agent you choose, such as Claude Code, Cursor, GitHub Copilot or Windsurf.
 
-**What's new in v1.2.0:** MCP servers, subagents and plugins install from the marketplace, with an install-time security scan and `skills audit` for what's already installed. `skills list --table` shows an estimated token cost per skill. Telemetry counts every command run and is documented in full below.
+The marketplace indexes over 222,000 skills from more than 21,000 authors.
 
-🌐 **Website:** [agentskills.in](https://agentskills.in)
+## Highlights
 
-```bash
-npm install -g agent-skills-cli
-skills install @anthropic/xlsx
-```
+- **Every source.** Marketplace, GitHub, private Git (SSH or token), and npm registries.
+- **45 agents.** One install can write to every agent you select, or to all of them with `--all`.
+- **Scanned before install.** Every skill is checked for security issues before it is copied.
+- **Built for teams.** Project config with `.skillsrc`, lockfile installs with `skills frozen`, and quality scoring.
 
----
+## Contents
 
-## ✨ Features
+- [Installation](#installation)
+- [Quick start](#quick-start)
+- [Commands](#commands)
+- [Installing skills](#installing-skills)
+- [MCP servers, subagents and plugins](#mcp-servers-subagents-and-plugins)
+- [Security](#security)
+- [Context budget and token cost](#context-budget-and-token-cost)
+- [Supported agents](#supported-agents)
+- [Configuration](#configuration)
+- [Environment variables and telemetry](#environment-variables-and-telemetry)
+- [Creating a skill](#creating-a-skill)
+- [Contributing](#contributing)
+- [License](#license)
 
-- **175,000+ Skills** — Access the largest collection of AI agent skills
-- **45 AI Agents** — Cursor, Claude, Copilot, Windsurf, Cline, Gemini CLI, Zed, and 35+ more
-- **FZF Interactive Search** — Real-time search with keyboard navigation: `skills search -i`
-- **Conflict Detection** — Find contradictions and overlaps across skills: `skills doctor --deep`
-- **Context Budget** — Smart token-aware skill selection for your project: `skills budget -b 8000`
-- **Skill Diff** — Section-aware comparison of two skills: `skills diff A B`
-- **Frozen Installs** — Deterministic lockfile-based installs (like `npm ci`): `skills frozen`
-- **Skill Compose** — Merge, chain, or conditionally combine skills: `skills compose A B -o C`
-- **Skill Testing** — 10 built-in quality assertions + custom tests: `skills test --all`
-- **Sandbox Preview** — Quality + conflicts check before install: `skills sandbox @owner/repo`
-- **Watch Mode** — Auto-sync skills to agents on file changes: `skills watch`
-- **Skill Splitter** — Split large skills into focused sub-skills: `skills split my-skill`
-- **Benchmarking** — Compare skill quality across your collection: `skills bench --all`
-- **Private Git Repos** — GitLab, Bitbucket, SSH, self-hosted Git: `skills install git@host:team/repo`
-- **npm Packages** — Install from npm registries: `skills install npm:@scope/package`
-- **`.skillsrc` Config** — Enterprise config files for custom registries, tokens, and defaults
-- **Quality Scoring** — 4-dimension skill scoring (0–100): `skills score`
-- **Lock File Tracking** — Track all installations in `~/.skills/skills.lock`
-- **Platform Targeting** — Install to specific platforms with `-t claude,cursor`
-- **MCP Servers, Subagents & Plugins** — Install by slug, auto-detected or forced: `skills install acme--weather --type mcp`
-- **Install-Time Security Scan** — Every skill is scanned before it is copied; audit installed skills with `skills audit`
-- **Token Cost Estimates** — See the context cost of each skill: `skills list --table`
-
----
-
-## 📦 Installation
+## Installation
 
 ```bash
 npm install -g agent-skills-cli
 ```
 
-**Requirements:** Node.js 18+
+Requires Node.js 18 or later. Run `skills --version` to confirm the install.
 
----
-
-## 🚀 Quick Start
+## Quick start
 
 ```bash
-# ⭐ Install a skill (auto-detects platforms)
-skills install @facebook/verify
-
-# ⭐ Install from a GitHub repo
-skills add vercel-labs/agent-skills
-
-# ⭐ Install from private Git (auto-detects credentials)
-skills install git@gitlab.com:team/internal-skills.git
-skills install https://git.company.com/team/skills --token $GIT_TOKEN
-
-# ⭐ Install from npm registry
-skills install npm:@company/skills
-skills install npm:@company/skills --registry https://npm.company.com
-
-# Install to specific platforms
-skills install @facebook/verify -a claude,cursor
-
-# Install to ALL 45 platforms at once
-skills install @lobehub/typescript --all
-
-# Install globally (home directory)
-skills install pdf -g -a claude
-
-# Install specific skill from repo
-skills add anthropic/skills@xlsx
-
-# List skills in a repo
-skills add owner/repo --list
-
-# Remove installed skills
-skills remove xlsx
-
-# Check installed skills
-skills check
-
-# Update skills from source
-skills update --all
-
-# Search and install skills interactively (multi-select)
+# Search the marketplace and pick skills interactively
 skills search python
 
-# Search + auto-install all results to an agent
-skills search python -a claude -y
+# Install a skill to the agents detected on this machine
+skills install @facebook/verify
 
-# Search + install to specific agents
-skills search react -a cursor claude
+# Install to specific agents
+skills install @facebook/verify -a claude,cursor
+
+# See what is installed, then keep it up to date
+skills list
+skills update --all
 ```
 
-> **🌐 Browse 175,000+ skills at [agentskills.in/marketplace](https://agentskills.in/marketplace)**
+## Commands
 
----
+| Command | What it does |
+|---------|--------------|
+| `skills search <query>` | Find skills in the marketplace. Add `-i` for an interactive picker. |
+| `skills install <source>` | Install from the marketplace, a GitHub repo, a Git URL, an npm package or a local folder. `skills add` is an alias. |
+| `skills list` | List discovered skills. Use `--table` for token costs or `--json` for scripts. |
+| `skills check` | Show installed skills with their source and version. |
+| `skills update [skills...]` | Update skills from their source. Use `--all`, and `--prune` to remove stale ones. |
+| `skills remove [skills...]` | Remove skills. Use `-a <agent>` to remove from one agent only. |
+| `skills doctor` | Diagnose the setup. Add `--deep` to detect conflicting skills. |
+| `skills audit [path]` | Security-scan installed skills, or a folder you specify. |
+| `skills score <path>` | Score a skill's quality from 0 to 100. |
+| `skills budget -b <tokens>` | Load only the skills that fit a context budget. |
+| `skills submit-repo <owner/repo>` | Submit a GitHub repository for marketplace indexing. |
 
-## 🛠️ Commands
+Run `skills --help` or `skills <command> --help` for the full list of commands and options.
 
-### Core Commands
-
-| Command | Description |
-|---------|-------------|
-| `skills install <name>` | Install a skill from marketplace |
-| `skills add <source>` | Install from Git repo (owner/repo or URL) |
-| `skills search <query>` | Search and install skills (multi-select) |
-| `skills search -i` | FZF-style interactive search with keyboard navigation |
-| `skills search <query> -a <agent> -y` | Search and bulk-install all results to an agent |
-| `skills check` | Check installed skills with source and version info |
-| `skills update` | Update skills from their source repos |
-| `skills remove` | Remove installed skills (interactive multi-select) |
-| `skills score [path]` | Score skill quality (0–100, grades F–A) |
-| `skills submit-repo <repo>` | Submit a GitHub repo for marketplace auto-indexing |
-| `skills doctor` | Diagnose issues (`--deep` for conflict detection) |
-
-### Power Tools (v1.1.4)
-
-| Command | Description |
-|---------|-------------|
-| `skills budget -b <tokens>` | Smart context budget — load only relevant skills within limit |
-| `skills diff <A> <B>` | Section-aware skill comparison |
-| `skills compose <skills...>` | Merge/chain/conditional skill composition |
-| `skills test [skills...]` | Run quality assertions against skills |
-| `skills frozen` | Deterministic install from lockfile |
-| `skills sandbox <source>` | Preview skill quality + conflicts before installing |
-| `skills watch [dir]` | Auto-sync skills to agents on file changes |
-| `skills split <skill>` | Split large skills into focused sub-skills |
-| `skills bench [skills...]` | Benchmark and compare skill quality |
-
-### Install Options
+### Install options
 
 ```bash
-skills install @facebook/verify          # Auto-detect platforms (prompts)
-skills install @facebook/verify -a cursor # Install to Cursor only
-skills install @lobehub/typescript -a cursor,claude  # Install to multiple
-skills install @facebook/verify --all     # Install to all 45 agents
-skills install pdf -g -a claude           # Install globally (~/.claude/skills/)
-skills install -s verify -a cursor        # Install by skill name
-skills add @facebook/verify -a cursor     # 'add' is an alias for 'install'
-
-# Bulk install all skills from a repo (no prompts)
-skills install @ComposioHQ/awesome-claude-skills -a claude -y
-skills install @github/awesome-copilot -a cursor,claude -y
-skills install @owner/repo --all -y        # All skills to all agents
+skills install <source> -a claude,cursor   # Specific agents (comma-separated or space-separated)
+skills install <source> --all              # Every supported agent
+skills install <source> -g                 # Global install (your home directory)
+skills install <source> -s <name>          # Install one skill from a multi-skill repo
+skills install <source> -y                 # Non-interactive; installs every skill found
+skills install <source> --dry-run          # Show what would be installed
+skills install <source> --skip-audit       # Install even when the scan finds critical issues
 ```
 
-### MCP Servers, Subagents and Plugins
+## Installing skills
+
+### Marketplace
 
 ```bash
-skills install github--github-mcp-server            # Bare slug: auto-detects skill, MCP server, subagent or plugin
-skills install acme--weather --type mcp -a cursor   # Force a type (skill, mcp, agent, plugin)
-skills install acme--weather -e API_KEY=xxx         # Env var for an MCP server (repeatable; prompts if omitted)
-skills install acme--reviewer --type agent          # Subagent into .claude/agents/
+skills install @anthropic/xlsx
+skills search react -a cursor claude      # Search, then install the results to agents
+skills search python -a claude -y         # Install every result without prompting
+```
+
+### GitHub and Git
+
+```bash
+skills add owner/repo                     # GitHub shorthand
+skills add owner/repo@skill-name          # One skill from a repo
+skills add owner/repo --list              # List the skills a repo contains
+skills add https://gitlab.com/org/repo    # Any Git host
+skills add owner/repo#dev                 # A specific branch
+```
+
+### Private repositories
+
+```bash
+skills install git@github.com:team/private-repo.git        # SSH, uses your keys
+skills install https://git.company.com/team/repo --token $GIT_TOKEN
+GITLAB_TOKEN=xxx skills install https://gitlab.com/team/repo
+```
+
+Credentials are resolved in this order: the `--token` flag, then environment variables (`GH_TOKEN`, `GITLAB_TOKEN`, `BITBUCKET_TOKEN`, `GIT_TOKEN`), then SSH keys, then the Git credential helper, then `.netrc`.
+
+### npm packages
+
+```bash
+skills install npm:@company/skills
+skills install npm:@company/skills@1.1.2
+skills install npm:@company/skills --registry https://npm.company.com
+```
+
+### Submitting a repository
+
+```bash
+skills submit-repo owner/repo             # Index every SKILL.md in the repo on the marketplace
+```
+
+## MCP servers, subagents and plugins
+
+Marketplace items can also be MCP servers, subagents or plugins. The CLI detects the type from the slug, or you can set it.
+
+```bash
+skills install github--github-mcp-server            # Type is detected automatically
+skills install acme--weather --type mcp -a cursor   # Force a type: skill, mcp, agent or plugin
+skills install acme--weather -e API_KEY=xxx         # Set an environment variable for the server
+skills install acme--reviewer --type agent          # Install a subagent to .claude/agents/
 skills remove acme--weather                         # Removes the MCP entry from each client config
 ```
 
-MCP config files are merged, never overwritten: other servers and keys are kept, a `.bak` is written first, and a config with comments (JSONC) is refused rather than rewritten. Quit the client (for example Claude Code) before a global (`-g`) install.
+MCP config files are merged, never overwritten. Other servers and keys are kept, a `.bak` copy is written first, and a config file with comments (JSONC) is refused rather than rewritten. Quit the client, such as Claude Code, before a global (`-g`) install.
 
-### Install-Time Security Scan
+## Security
 
-Every skill and subagent is scanned before it is copied. Critical findings block the install; high findings print a warning. `--skip-audit` installs anyway. Findings are automated signals, not a verdict: read a skill before you run it.
-
-```bash
-skills audit                      # Audit installed skills against agentskills.in advisories
-skills audit ./my-skill           # Audit one folder
-skills audit --fail-on high       # Exit 1 at high or above (for CI)
-skills audit --json --offline     # JSON output, no advisory download
-skills audit --no-global          # Project-level agent directories only
-skills list --table               # Includes a Tokens column (estimated context cost)
-```
-
-### Git URL Install (`skills add`)
+Every skill and subagent is scanned before it is copied. Critical findings block the install, and high findings print a warning. The scan is an automated signal, not a verdict, so read a skill before you run it.
 
 ```bash
-skills add owner/repo              # GitHub shorthand
-skills add owner/repo@skill-name   # Install specific skill directly
-skills add https://github.com/user/repo  # Full URL
-skills add https://gitlab.com/org/repo   # GitLab
-skills add owner/repo --list       # List skills in repo
-skills add owner/repo -s skill-name      # Install specific skill
-skills add owner/repo -y -g        # Non-interactive, global
-skills add owner/repo -a claude -y # Install ALL skills to claude (no prompt)
+skills audit                          # Audit installed skills against agentskills.in advisories
+skills audit ./my-skill               # Audit one folder
+skills audit --fail-on high           # Exit with code 1 at high severity or above (for CI)
+skills audit --json --offline         # JSON output without downloading advisories
 ```
 
-### Private Git Repos
+To report a vulnerability, see [SECURITY.md](SECURITY.md).
+
+## Context budget and token cost
+
+Each skill costs context tokens. Two commands help manage that:
 
 ```bash
-# SSH (auto-detects SSH keys)
-skills install git@github.com:team/private-repo.git
-skills install git@gitlab.com:team/internal-skills.git
-
-# HTTPS with token
-skills install https://git.company.com/team/repo --token=xxx
-
-# Token from environment variable
-GITLAB_TOKEN=xxx skills install https://gitlab.com/team/repo
-BITBUCKET_TOKEN=xxx skills install https://bitbucket.org/team/repo
-
-# Bitbucket
-skills install https://bitbucket.org/team/skills-repo
+skills list --table                   # Estimated token cost per skill
+skills budget -b 8000                 # Pick the most relevant skills for a project, within 8,000 tokens
+skills budget -b 4000 --format xml    # Agent-ready output
 ```
 
-**Auth resolution order:** `--token` flag → env vars (`GH_TOKEN`, `GITLAB_TOKEN`, `BITBUCKET_TOKEN`, `GIT_TOKEN`) → SSH keys → git credential helper → `.netrc`
+## Supported agents
 
-### npm Packages
+`skills install` supports 45 agents. Pass any key from the table to `-a`.
 
-```bash
-# Public npm packages
-skills install npm:chalk
-skills install npm:@anthropic/skills
+<details>
+<summary>All 45 agents</summary>
 
-# Scoped package with version
-skills install npm:@company/skills@1.1.2
+| Agent | Key | Project directory |
+|-------|-----|-------------------|
+| Cursor | `cursor` | `.cursor/skills/` |
+| Claude Code | `claude` | `.claude/skills/` |
+| GitHub Copilot | `copilot` | `.github/skills/` |
+| Codex | `codex` | `.codex/skills/` |
+| Antigravity | `antigravity` | `.agent/skills/` |
+| OpenCode | `opencode` | `.opencode/skill/` |
+| Amp | `amp` | `.agents/skills/` |
+| Kilo Code | `kilo` | `.kilocode/skills/` |
+| Roo Code | `roo` | `.roo/skills/` |
+| Goose | `goose` | `.goose/skills/` |
+| Cline | `cline` | `.cline/skills/` |
+| CodeBuddy | `codebuddy` | `.codebuddy/skills/` |
+| Command Code | `command-code` | `.commandcode/skills/` |
+| Continue | `continue` | `.continue/skills/` |
+| Crush | `crush` | `.crush/skills/` |
+| Clawdbot | `clawdbot` | `skills/` |
+| Droid | `droid` | `.factory/skills/` |
+| Gemini CLI | `gemini-cli` | `.gemini/skills/` |
+| Kiro CLI | `kiro-cli` | `.kiro/skills/` |
+| MCPJam | `mcpjam` | `.mcpjam/skills/` |
+| Mux | `mux` | `.mux/skills/` |
+| OpenHands | `openhands` | `.openhands/skills/` |
+| Pi | `pi` | `.pi/skills/` |
+| Qoder | `qoder` | `.qoder/skills/` |
+| Qwen Code | `qwen-code` | `.qwen/skills/` |
+| Trae | `trae` | `.trae/skills/` |
+| Windsurf | `windsurf` | `.windsurf/skills/` |
+| Zencoder | `zencoder` | `.zencoder/skills/` |
+| Neovate | `neovate` | `.neovate/skills/` |
+| Ara | `ara` | `.ara/skills/` |
+| Aide | `aide` | `.aide/skills/` |
+| Alex | `alex` | `.alex/skills/` |
+| BB | `bb` | `.bb/skills/` |
+| CodeStory | `codestory` | `.codestory/skills/` |
+| Helix AI | `helix-ai` | `.helix/skills/` |
+| Meekia | `meekia` | `.meekia/skills/` |
+| Pear AI | `pear-ai` | `.pearai/skills/` |
+| Adal | `adal` | `.adal/skills/` |
+| Pochi | `pochi` | `.pochi/skills/` |
+| Sourcegraph Cody | `sourcegraph-cody` | `.sourcegraph/skills/` |
+| Void AI | `void-ai` | `.void/skills/` |
+| Zed | `zed` | `.zed/skills/` |
+| Lingma | `lingma` | `.lingma/skills/` |
+| Deep Agents | `deep-agents` | `.deepagents/skills/` |
+| Ruler | `ruler` | `.ruler/skills/` |
 
-# Private npm registry
-skills install npm:@company/skills --registry https://npm.company.com
-```
+</details>
 
-### Other Commands
+Global installs (`-g`) go to each agent's user-level directory, such as `~/.claude/skills/`.
 
-```bash
-skills init <name>        # Create new skill from template
-skills validate <path>    # Validate a SKILL.md file
-skills export             # Export skills to agents
-skills sync               # Sync to Antigravity workflows
-skills info               # Show installation status
-```
+`skills list` searches the canonical store (`~/.skills/` and `./.skills/`) and every agent's directories, so a skill installed by `skills install` stays discoverable.
 
-### Quality Scoring
+## Configuration
 
-```bash
-skills score ./my-skill             # Score a skill (0–100, grade F–A)
-skills score ./my-skill --verbose    # Show individual check details
-skills score ./my-skill --json       # Machine-readable output
-```
-
-**Dimensions:** Structure (30%), Clarity (30%), Specificity (30%), Advanced (10%)
-
-### Submit Repos to Marketplace
-
-```bash
-skills submit-repo Jeffallan/claude-skills   # Auto-index all skills in repo
-skills submit-repo vercel-labs/agent-skills   # Skills appear on marketplace
-```
-
----
-
-## 🤖 Supported Platforms (45 Agents)
-
-| Platform | Project Dir | Global Dir |
-|----------|-------------|------------|
-| **Cursor** | `.cursor/skills/` | `~/.cursor/skills/` |
-| **Claude Code** | `.claude/skills/` | `~/.claude/skills/` |
-| **GitHub Copilot** | `.github/skills/` | `~/.github/skills/` |
-| **OpenAI Codex** | `.codex/skills/` | `~/.codex/skills/` |
-| **Windsurf** | `.windsurf/skills/` | `~/.codeium/windsurf/skills/` |
-| **Cline** | `.cline/skills/` | `~/.cline/skills/` |
-| **Gemini CLI** | `.gemini/skills/` | `~/.gemini/skills/` |
-| **Zed** | `.zed/skills/` | `~/.config/zed/skills/` |
-| **Antigravity** | `.agent/skills/` | `~/.gemini/antigravity/skills/` |
-| **OpenCode** | `.opencode/skill/` | `~/.config/opencode/skill/` |
-
-**+32 more agents:** Amp, Kilo, Roo, Goose, CodeBuddy, Continue, Crush, Clawdbot, Droid, Kiro, MCPJam, Mux, OpenHands, Pi, Qoder, Qwen Code, Trae, Zencoder, Neovate, Command Code, Ara, Aide, Alex, BB, CodeStory, Helix AI, Meekia, Pear AI, Adal, Pochi, Sourcegraph Cody, Void AI
-
-> **Discovery note:** `skills list` searches both canonical install storage (`~/.skills/`, `./.skills/`) and agent-specific skill directories, so skills installed by `skills install` remain discoverable even before syncing.
-
----
-
-## ⚙️ Configuration (`.skillsrc`)
-
-Create a `.skillsrc` or `.skillsrc.json` file in your project root or home directory to configure private sources and defaults:
+Put a `.skillsrc` or `.skillsrc.json` file in your project or home directory to set private sources and defaults:
 
 ```json
 {
@@ -311,31 +259,25 @@ Create a `.skillsrc` or `.skillsrc.json` file in your project root or home direc
 }
 ```
 
-Config is loaded from: project `.skillsrc` → home `~/.skillsrc` (first found wins).
+The project `.skillsrc` is used first. If there is none, the file in your home directory is used.
 
----
-
-## 🔐 Environment Variables
+## Environment variables and telemetry
 
 | Variable | Purpose |
-|----------|---------|  
-| `GH_TOKEN` / `GITHUB_TOKEN` | GitHub private repo authentication |
-| `GITLAB_TOKEN` / `GL_TOKEN` | GitLab private repo authentication |
-| `BITBUCKET_TOKEN` / `BB_TOKEN` | Bitbucket private repo authentication |
-| `GIT_TOKEN` | Generic Git authentication (any host) |
-| `DISABLE_TELEMETRY` / `DO_NOT_TRACK` | Opt out of anonymous telemetry |
+|----------|---------|
+| `GH_TOKEN` or `GITHUB_TOKEN` | Authenticate to private GitHub repositories |
+| `GITLAB_TOKEN` or `GL_TOKEN` | Authenticate to private GitLab repositories |
+| `BITBUCKET_TOKEN` or `BB_TOKEN` | Authenticate to private Bitbucket repositories |
+| `GIT_TOKEN` | Authenticate to any other Git host |
+| `DISABLE_TELEMETRY` or `DO_NOT_TRACK` | Turn off anonymous telemetry |
 
-### Telemetry
+The CLI sends one anonymous count per command run to `https://www.agentskills.in/api/telemetry`. The count includes the command name (for example `install` or `list`) and the CLI version. It never includes command arguments, skill names, search text, file paths or private repository URLs. The server stores only daily counters, with no IP addresses. The first run prints this notice once.
 
-The CLI sends one anonymous count per command run to `https://www.agentskills.in/api/telemetry`: the command name (for example `install` or `list`) and the CLI version. It never sends command arguments, skill names, search text, file paths or private repo URLs. The server stores only daily counters, with no IP address. The first run prints this notice once.
+Telemetry is off in CI environments. Set `DISABLE_TELEMETRY=1` or `DO_NOT_TRACK=1` to turn it off everywhere.
 
-Opt out with `DISABLE_TELEMETRY=1` or `DO_NOT_TRACK=1`. It is automatically off in CI environments.
+## Creating a skill
 
----
-
-## 📚 Creating Skills
-
-Create a `SKILL.md` file:
+A skill is a folder with a `SKILL.md` file:
 
 ```markdown
 ---
@@ -345,39 +287,41 @@ description: What this skill does
 
 # Instructions
 
-Your skill instructions here...
+Your skill instructions here.
 ```
 
-Then install locally:
+Check it and export it to your agents:
 
 ```bash
 skills validate ./my-skill
+skills score ./my-skill
 skills export
 ```
 
----
+## Links
 
-## 🔗 Links
+- Website: [agentskills.in](https://agentskills.in)
+- Marketplace: [agentskills.in/marketplace](https://agentskills.in/marketplace)
+- Documentation: [agentskills.in/docs](https://agentskills.in/docs)
+- npm: [npmjs.com/package/agent-skills-cli](https://www.npmjs.com/package/agent-skills-cli)
+- Release notes: [CHANGELOG.md](CHANGELOG.md)
 
-- **Website:** [agentskills.in](https://agentskills.in)
-- **Marketplace:** [agentskills.in/marketplace](https://agentskills.in/marketplace)
-- **Documentation:** [agentskills.in/docs](https://agentskills.in/docs)
-- **CLI GitHub:** [github.com/Karanjot786/agent-skills-cli](https://github.com/Karanjot786/agent-skills-cli)
-- **Website GitHub:** [github.com/Karanjot786/agent-skills-UI](https://github.com/Karanjot786/agent-skills-UI)
-- **npm:** [npmjs.com/package/agent-skills-cli](https://www.npmjs.com/package/agent-skills-cli)
+## Contributing
 
----
+Bug reports, feature requests and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first.
 
-## 👤 Author
+To work on the CLI from source:
 
-**Karanjot Singh**
+```bash
+git clone https://github.com/Karanjot786/agent-skills-cli.git
+cd agent-skills-cli
+npm install
+npm run build
+npm test
+```
 
-- 🐦 [@Karanjotdulay](https://x.com/Karanjotdulay)
-- 💼 [LinkedIn](https://www.linkedin.com/in/karanjot786/)
-- 🐙 [@Karanjot786](https://github.com/Karanjot786)
+## License
 
----
+MIT. See [LICENSE](LICENSE).
 
-## 📄 License
-
-MIT © [Karanjot Singh](https://github.com/Karanjot786)
+Maintained by [Karanjot Singh](https://github.com/Karanjot786).
