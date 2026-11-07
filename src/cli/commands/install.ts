@@ -417,7 +417,12 @@ export function registerInstallCommand(program: Command) {
                                 canonicalPath: installedPath ?? (isGlobal ? AGENTS[agents[0]].globalDir : AGENTS[agents[0]].projectDir),
                                 isGlobal,
                             });
-                            await addSkillToLock(lockEntry);
+                            try {
+                                await addSkillToLock(lockEntry);
+                            } catch (error) {
+                                console.error(chalk.yellow('Skill files were copied, but updating the lock file failed. Review installed files and the lock before retrying.'));
+                                throw error;
+                            }
 
                             spinner.succeed(`Installed ${(skill as any).scoped_name || skill.name}`);
                             console.log('');
@@ -593,7 +598,12 @@ export function registerInstallCommand(program: Command) {
                                     canonicalPath: installedPath ?? (isGlobal ? AGENTS[agents[0]].globalDir : AGENTS[agents[0]].projectDir),
                                     isGlobal,
                                 });
-                                await addSkillToLock(lockEntry);
+                                try {
+                                    await addSkillToLock(lockEntry);
+                                } catch (error) {
+                                    console.error(chalk.yellow('Skill files were copied, but updating the lock file failed. Review installed files and the lock before retrying.'));
+                                    throw error;
+                                }
 
                                 spinner.succeed(`Installed ${(skill as any).scoped_name || skill.name}`);
                                 console.log('');

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Command } from 'commander';
-import { mkdtemp, mkdir, rm, writeFile } from 'fs/promises';
+import { mkdtemp, mkdir, readFile, rm, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
 
@@ -88,6 +88,8 @@ for (const source of ['@fixture/fixture-skill', 'fixture/fixture-skill']) {
             await run(source);
             expect(exit).toHaveBeenCalledWith(1);
             expect(error.mock.calls.flat().join(' ')).toContain('lock write denied');
+            expect(error.mock.calls.flat().join(' ')).toContain('Skill files were copied, but updating the lock file failed.');
+            expect(await readFile(join(state.target, 'fixture-skill', 'SKILL.md'), 'utf8')).toContain('Local fixture.');
             expect(state.clone).not.toHaveBeenCalled();
             expect(state.lookup).toHaveBeenCalledTimes(1);
             expect(state.messages).toEqual([]);
@@ -98,6 +100,7 @@ for (const source of ['@fixture/fixture-skill', 'fixture/fixture-skill']) {
             await run(source);
             expect(exit).toHaveBeenCalledWith(1);
             expect(error.mock.calls.flat().join(' ')).toContain('download failed');
+            expect(error.mock.calls.flat().join(' ')).not.toContain('Skill files were copied');
             expect(state.clone).not.toHaveBeenCalled();
             expect(state.lock).not.toHaveBeenCalled();
             expect(state.messages).toEqual([]);
@@ -108,6 +111,7 @@ for (const source of ['@fixture/fixture-skill', 'fixture/fixture-skill']) {
             expect(state.lock).toHaveBeenCalledTimes(1);
             expect(state.clone).not.toHaveBeenCalled();
             expect(exit).not.toHaveBeenCalled();
+            expect(error).not.toHaveBeenCalled();
         });
 
         it('still permits repository fallback when lookup is unavailable', async () => {

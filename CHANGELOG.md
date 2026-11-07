@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Bug Fixes
-- Once a catalog skill resolves, install and lock-file failures report their original error and a nonzero exit instead of retrying the skill name as a different GitHub repository. Lookup misses and outages still use the existing repository fallback.
+- Once a catalog skill resolves, install and lock-file failures report their original error and a nonzero exit instead of retrying the skill name as a different GitHub repository. If the lock write fails after copying, the CLI warns that files were copied and updating the lock failed. Lookup misses and outages still use the existing repository fallback.
 
 ## [1.2.0] - 2026-10-11
 
