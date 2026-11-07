@@ -390,10 +390,13 @@ export function registerInstallCommand(program: Command) {
                 // ── Handle @scoped/name — try marketplace first, fallback to GitHub ──
                 if (source.startsWith('@')) {
                     const spinner = ora(`Looking up "${source}" in marketplace...`).start();
+                    // A resolved skill must never be retried as a different source.
+                    let marketplaceResolved = false;
                     try {
                         const skill = await getSkillByScoped(source);
 
                         if (skill) {
+                            marketplaceResolved = true;
                             spinner.text = `Installing ${(skill as any).scoped_name || skill.name}...`;
 
                             let installedPath: string | undefined;
@@ -414,7 +417,12 @@ export function registerInstallCommand(program: Command) {
                                 canonicalPath: installedPath ?? (isGlobal ? AGENTS[agents[0]].globalDir : AGENTS[agents[0]].projectDir),
                                 isGlobal,
                             });
-                            await addSkillToLock(lockEntry);
+                            try {
+                                await addSkillToLock(lockEntry);
+                            } catch (error) {
+                                console.error(chalk.yellow('Skill files were copied, but updating the lock file failed. Review installed files and the lock before retrying.'));
+                                throw error;
+                            }
 
                             spinner.succeed(`Installed ${(skill as any).scoped_name || skill.name}`);
                             console.log('');
@@ -429,7 +437,8 @@ export function registerInstallCommand(program: Command) {
                             Object.assign(parsed, reparsed);
                             // Fall through to git-based install below
                         }
-                    } catch {
+                    } catch (error) {
+                        if (marketplaceResolved) throw error;
                         // Marketplace unavailable — strip @ and try as GitHub owner/repo
                         const withoutAt = source.slice(1);
                         spinner.info(`Marketplace unavailable, trying as GitHub repo: ${withoutAt}`);
@@ -556,6 +565,8 @@ export function registerInstallCommand(program: Command) {
                     if (parsed.type === 'github' && !source.includes('://') && !source.startsWith('git@')) {
                         // owner/repo shorthand — try marketplace first
                         const spinner = ora(`Looking up "${source}" in marketplace...`).start();
+                        // A resolved skill must never be retried as a different source.
+                        let marketplaceResolved = false;
                         try {
                             let skill = await getSkillByScoped(source);
                             if (!skill) {
@@ -566,6 +577,7 @@ export function registerInstallCommand(program: Command) {
                             }
 
                             if (skill) {
+                                marketplaceResolved = true;
                                 spinner.text = `Installing ${(skill as any).scoped_name || skill.name}...`;
 
                                 let installedPath: string | undefined;
@@ -586,7 +598,12 @@ export function registerInstallCommand(program: Command) {
                                     canonicalPath: installedPath ?? (isGlobal ? AGENTS[agents[0]].globalDir : AGENTS[agents[0]].projectDir),
                                     isGlobal,
                                 });
-                                await addSkillToLock(lockEntry);
+                                try {
+                                    await addSkillToLock(lockEntry);
+                                } catch (error) {
+                                    console.error(chalk.yellow('Skill files were copied, but updating the lock file failed. Review installed files and the lock before retrying.'));
+                                    throw error;
+                                }
 
                                 spinner.succeed(`Installed ${(skill as any).scoped_name || skill.name}`);
                                 console.log('');
@@ -594,7 +611,8 @@ export function registerInstallCommand(program: Command) {
                             }
                             // Not found in marketplace — fall through to git clone
                             spinner.info('Not found in marketplace, cloning repository...');
-                        } catch {
+                        } catch (error) {
+                            if (marketplaceResolved) throw error;
                             // Marketplace unavailable — fall through
                             spinner.info('Marketplace unavailable, cloning repository...');
                         }
