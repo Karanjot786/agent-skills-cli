@@ -1,6 +1,6 @@
 # Agent Skills CLI
 
-Install, update and manage AI agent skills across 45 coding agents from one command line.
+Install, update and manage AI agent skills across 46 coding agents from one command line.
 
 [![npm version](https://img.shields.io/npm/v/agent-skills-cli)](https://www.npmjs.com/package/agent-skills-cli)
 [![npm downloads](https://img.shields.io/npm/dm/agent-skills-cli)](https://www.npmjs.com/package/agent-skills-cli)
@@ -15,7 +15,7 @@ The marketplace indexes over 222,000 skills from more than 21,000 authors.
 ## Highlights
 
 - **Every source.** Marketplace, GitHub, private Git (SSH or token), and npm registries.
-- **45 agents.** One install can write to every agent you select, or to all of them with `--all`.
+- **46 agents.** One install can write to every agent you select, or to all of them with `--all`.
 - **Scanned before install.** Every command that installs skills checks them for security issues before copying them.
 - **Built for teams.** Project config with `.skillsrc`, lockfile installs with `skills frozen`, and quality scoring.
 
@@ -173,10 +173,10 @@ skills budget -b 4000 --format xml    # Agent-ready output
 
 ## Supported agents
 
-`skills install` supports 45 agents. Pass any key from the table to `-a`.
+`skills install` supports 46 agents. Pass any key from the table to `-a`.
 
 <details>
-<summary>All 45 agents</summary>
+<summary>All 46 agents</summary>
 
 | Agent | Key | Project directory |
 |-------|-----|-------------------|
@@ -207,6 +207,7 @@ skills budget -b 4000 --format xml    # Agent-ready output
 | Qwen Code | `qwen-code` | `.qwen/skills/` |
 | Trae | `trae` | `.trae/skills/` |
 | Windsurf | `windsurf` | `.windsurf/skills/` |
+| WordPress Studio | `wp-studio` | `.agents/skills/` |
 | Zencoder | `zencoder` | `.zencoder/skills/` |
 | Neovate | `neovate` | `.neovate/skills/` |
 | Ara | `ara` | `.ara/skills/` |
