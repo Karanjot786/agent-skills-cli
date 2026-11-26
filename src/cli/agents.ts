@@ -202,8 +202,8 @@ export const AGENTS: Record<string, AgentConfig> = {
         globalDir: `${home}/.codeium/windsurf/skills`,
         mcp: { globalFile: `${home}/.codeium/windsurf/mcp_config.json`, format: 'json', key: 'mcpServers', urlField: 'serverUrl' },
     },
-    'wordpress-studio': {
-        name: 'wordpress-studio',
+    'wp-studio': {
+        name: 'wp-studio',
         displayName: 'WordPress Studio',
         projectDir: '.agents/skills',
         globalDir: `${home}/.studio/skills`,

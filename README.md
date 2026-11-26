@@ -207,7 +207,7 @@ skills budget -b 4000 --format xml    # Agent-ready output
 | Qwen Code | `qwen-code` | `.qwen/skills/` |
 | Trae | `trae` | `.trae/skills/` |
 | Windsurf | `windsurf` | `.windsurf/skills/` |
-| WordPress Studio | `wordpress-studio` | `.agents/skills/` |
+| WordPress Studio | `wp-studio` | `.agents/skills/` |
 | Zencoder | `zencoder` | `.zencoder/skills/` |
 | Neovate | `neovate` | `.neovate/skills/` |
 | Ara | `ara` | `.ara/skills/` |
